@@ -7,12 +7,15 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <style>
+    /* ————— Base ————— */
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:20px;min-height:100vh}
     .container{max-width:1400px;margin:0 auto;background:#fff;border-radius:15px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden}
     .header{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:30px;text-align:center}
     .header h1{font-size:2em;margin-bottom:10px}
     .content{padding:30px}
+
+    /* ————— Upload ————— */
     .upload-section{background:#f8f9fa;border-radius:10px;padding:25px;margin-bottom:30px}
     .upload-section h2{color:#667eea;margin-bottom:20px;font-size:1.5em}
     .file-input-group{margin-bottom:20px}
@@ -29,6 +32,8 @@
     .file-size{font-size:.85em;color:#666}
     .remove-file-btn{padding:6px 12px;background:#f44336;color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:.9em;transition:.3s}
     .remove-file-btn:hover{background:#d32f2f;transform:scale(1.05)}
+
+    /* ————— Cards / buttons ————— */
     .monthly-summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-bottom:30px}
     .month-card{background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,.1);border-left:5px solid #667eea}
     .month-card h3{color:#667eea;margin-bottom:15px;font-size:1.3em;display:flex;align-items:center;gap:10px}
@@ -41,13 +46,16 @@
     .month-stat-value.warning{color:#e74c3c}
     .month-stat-value.amount{color:#667eea}
     .comparison-section{background:#f8f9fa;border-radius:10px;padding:20px;margin:20px 0}
-    .action-buttons{display:flex;gap:15px;margin-top:25px}
-    .btn{padding:15px 30px;border:none;border-radius:8px;font-size:1.1em;font-weight:600;cursor:pointer;transition:.3s;flex:1}
+
+    .action-buttons{display:flex;gap:15px;margin-top:25px;flex-wrap:wrap}
+    .btn{padding:15px 30px;border:none;border-radius:8px;font-size:1.05em;font-weight:600;cursor:pointer;transition:.3s}
     .btn-primary{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff}
     .btn-primary:hover{transform:translateY(-2px);box-shadow:0 5px 15px rgba(102,126,234,.4)}
     .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
     .btn-secondary{background:#6c757d;color:#fff}
     .btn-secondary:hover{background:#5a6268}
+
+    /* ————— Stats / tabs ————— */
     .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;margin:30px 0}
     .stat-card{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:20px;border-radius:10px;text-align:center}
     .stat-card.success{background:linear-gradient(135deg,#11998e 0%,#38ef7d 100%)}
@@ -56,11 +64,13 @@
     .stat-label{font-size:1em;opacity:.9}
     .results-section{margin-top:30px;display:none}
     .results-section.show{display:block}
-    .tab-buttons{display:flex;gap:10px;margin-bottom:20px;border-bottom:2px solid #e0e0e0}
+    .tab-buttons{display:flex;gap:10px;margin-bottom:20px;border-bottom:2px solid #e0e0e0;flex-wrap:wrap}
     .tab-btn{padding:15px 25px;background:transparent;border:none;border-bottom:3px solid transparent;font-size:1.05em;font-weight:600;color:#666;cursor:pointer;transition:.3s}
     .tab-btn.active{color:#667eea;border-bottom-color:#667eea}
     .tab-content{display:none}
     .tab-content.active{display:block}
+
+    /* ————— Tables ————— */
     .table-wrapper{overflow-x:auto;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.1)}
     table{width:100%;border-collapse:collapse;background:#fff}
     th{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:15px;text-align:left;font-weight:600;position:sticky;top:0}
@@ -71,16 +81,25 @@
     .status-not-factured{background:#f8d7da;color:#721c24}
     .export-btn{margin-top:20px;padding:12px 25px;background:#28a745;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;transition:.3s}
     .export-btn:hover{background:#218838;transform:translateY(-2px)}
+
+    /* ————— Loading ————— */
     .loading{display:none;text-align:center;padding:20px}
     .loading.show{display:block}
     .spinner{border:4px solid #f3f3f3;border-top:4px solid #667eea;border-radius:50%;width:50px;height:50px;animation:spin 1s linear infinite;margin:0 auto 15px}
     @keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+
+    /* ————— Notes & banners ————— */
     .note{font-size:.9em;color:#555;margin-top:8px}
-/* — Saisie manuelle — */
-.card{background:#fff;border:1px solid #e6e6e6;border-radius:10px;padding:18px;margin:20px 0}
-.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
-.input{width:100%;padding:10px 12px;border:1px solid #cfd2d9;border-radius:8px}
-.label{font-weight:600;color:#333;margin-bottom:6px}
+    .tiny{font-size:.88em;color:#666}
+    .inline{display:flex;gap:10px;flex-wrap:wrap}
+    .cache-banner{background:#fff7e6;border:1px solid #ffe0b2;border-radius:8px;padding:12px 14px;margin:12px 0;display:none}
+    .cache-banner.show{display:block}
+
+    /* ————— Saisie manuelle ————— */
+    .card{background:#fff;border:1px solid #e6e6e6;border-radius:10px;padding:18px;margin:20px 0}
+    .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+    .input{width:100%;padding:10px 12px;border:1px solid #cfd2d9;border-radius:8px}
+    .label{font-weight:600;color:#333;margin-bottom:6px}
   </style>
 </head>
 <body>
@@ -111,8 +130,16 @@
             <button class="file-input-button" onclick="document.getElementById('honorairesFiles').click()">💰 Ajouter des fichiers CSV des honoraires</button>
           </div>
           <div id="honorairesFilesList" class="files-list"></div>
-          <p class="note">CSV attendu : séparateur « ; », encodage ISO‑8859‑1, la 6ᵉ ligne contient les en‑têtes.</p>
+          <p class="note">CSV attendu : séparateur « ; », encodage ISO-8859-1, la 6ᵉ ligne contient les en-têtes.</p>
+
+        <!-- Persistance locale -->
+        <div id="cacheBanner" class="cache-banner"></div>
+        <div class="inline" style="margin-top:10px">
+          <button class="btn btn-secondary" id="btnLoadCache">⬇️ Charger le dernier cache</button>
+          <button class="btn btn-secondary" id="btnClearCache">🧹 Purger le cache</button>
+          <label class="tiny"><input type="checkbox" id="autoSave"/> Auto-sauvegarde après analyse</label>
         </div>
+        <p class="tiny">Seules les <strong>données parsées</strong> (actes, honoraires, réconciliation & saisies) sont stockées en local via IndexedDB. Les fichiers sources ne sont pas conservés par le navigateur.</p>
 
         <div class="action-buttons">
           <button class="btn btn-primary" id="analyzeBtn" disabled>🔍 Analyser et réconcilier</button>
@@ -121,31 +148,31 @@
       </div>
 
       <!-- Saisie manuelle quotidienne -->
-<div class="card">
-  <h2>✍️ Saisie manuelle quotidienne (comparatif)</h2>
-  <p class="note">Renseigne le nombre d'actes effectués par jour. Ces valeurs seront comparées aux actes extraits des fichiers.</p>
-  <div class="grid" style="margin-top:10px">
-    <div>
-      <div class="label">Date</div>
-      <input type="date" id="manualDate" class="input" />
-    </div>
-    <div>
-      <div class="label">Nombre d'actes</div>
-      <input type="number" id="manualCount" class="input" min="0" step="1" placeholder="0" />
-    </div>
-    <div style="align-self:end">
-      <button class="btn btn-primary" id="btnAddManual">➕ Ajouter</button>
-    </div>
-  </div>
-  <div class="table-wrapper" style="margin-top:15px">
-    <table id="manual-table"></table>
-  </div>
-  <div class="action-buttons">
-    <button class="btn btn-secondary" id="btnExportManual">📥 Exporter la saisie (CSV)</button>
-  </div>
-</div>
+      <div class="card">
+        <h2>✍️ Saisie manuelle quotidienne (comparatif)</h2>
+        <p class="note">Renseigne le nombre d'actes effectués par jour. Cela permet de comparer avec les actes issus des fichiers Stellair une fois réconciliés.</p>
+        <div class="grid" style="margin-top:10px">
+          <div>
+            <div class="label">Date</div>
+            <input type="date" id="manualDate" class="input" />
+          </div>
+          <div>
+            <div class="label">Nombre d'actes</div>
+            <input type="number" id="manualCount" class="input" min="0" step="1" placeholder="0" />
+          </div>
+          <div style="align-self:end">
+            <button class="btn btn-primary" id="btnAddManual">➕ Ajouter</button>
+          </div>
+        </div>
+        <div class="table-wrapper" style="margin-top:15px">
+          <table id="manual-table"></table>
+        </div>
+        <div class="action-buttons">
+          <button class="btn btn-secondary" id="btnExportManual">📥 Exporter la saisie (CSV)</button>
+        </div>
+      </div>
 
-<div class="loading" id="loading">
+      <div class="loading" id="loading">
         <div class="spinner"></div>
         <p>Analyse en cours…</p>
       </div>
@@ -158,13 +185,12 @@
           <button class="tab-btn" data-tab="non-factures">❌ Actes non facturés</button>
           <button class="tab-btn" data-tab="factures">✅ Actes facturés</button>
           <button class="tab-btn" data-tab="tous">📋 Tous les actes</button>
+          <button class="tab-btn" data-tab="comparatif">📈 Comparatif quotidien</button>
         </div>
 
         <div class="tab-content active" id="tab-recap">
           <div id="monthly-summary"></div>
-          <div class="table-wrapper" style="margin-top:30px">
-            <table id="table-monthly"></table>
-          </div>
+          <div class="table-wrapper" style="margin-top:30px"><table id="table-monthly"></table></div>
           <button class="export-btn" onclick="exportMonthlyReport()">📥 Exporter le récapitulatif mensuel (Excel)</button>
         </div>
 
@@ -182,6 +208,13 @@
           <div class="table-wrapper"><table id="table-tous"></table></div>
           <button class="export-btn" onclick="exportToExcel('tous')">📥 Exporter tous les actes (Excel)</button>
         </div>
+
+        <div class="tab-content" id="tab-comparatif">
+          <div class="table-wrapper">
+            <table id="table-comparatif"></table>
+          </div>
+          <button class="export-btn" onclick="exportDailyComparison()">📥 Exporter le comparatif quotidien (Excel)</button>
+        </div>
       </div>
     </div>
   </div>
@@ -193,175 +226,137 @@
     let actesData = [];
     let honorairesData = [];
     let reconciledData = [];
-let manualEntries = JSON.parse(localStorage.getItem('manualEntries_v1')||'[]');
+    let manualEntries = JSON.parse(localStorage.getItem('manualEntries_v1')||'[]'); // {date:'YYYY-MM-DD', count:Number}
 
-    // ===== UTILITAIRES (normalisation robuste) =====
-    const normalizeString = (s="") => s
-      .toString()
-      .normalize("NFD")
-      .replace(/\p{Diacritic}/gu, "")
-      .replace(/[^A-Za-z0-9\s'-]/g, " ")
-      .replace(/\s+/g, " ")
-      .trim()
-      .toUpperCase();
+    // ===== PERSISTENCE (IndexedDB) =====
+    const DB_NAME = 'rc_db_v2';
+    const STORE = 'cache';
+    const LS_AUTOSAVE = 'rc_autosave_v1';
 
-    const normalizeDossier = (d="") => d.toString().replace(/\D/g, "").replace(/^0+/, "");
+    function idbOpen(){
+      return new Promise((resolve,reject)=>{
+        const req = indexedDB.open(DB_NAME,1);
+        req.onupgradeneeded = ()=>{ const db=req.result; if(!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE); };
+        req.onsuccess = ()=>resolve(req.result);
+        req.onerror = ()=>reject(req.error);
+      });
+    }
+    async function idbSet(key,val){ const db=await idbOpen(); return new Promise((res,rej)=>{ const tx=db.transaction(STORE,'readwrite'); tx.objectStore(STORE).put(val,key); tx.oncomplete=()=>res(); tx.onerror=()=>rej(tx.error); }); }
+    async function idbGet(key){ const db=await idbOpen(); return new Promise((res,rej)=>{ const tx=db.transaction(STORE,'readonly'); const r=tx.objectStore(STORE).get(key); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
+    async function idbDel(key){ const db=await idbOpen(); return new Promise((res,rej)=>{ const tx=db.transaction(STORE,'readwrite'); tx.objectStore(STORE).delete(key); tx.oncomplete=()=>res(); tx.onerror=()=>rej(tx.error); }); }
 
-    const parseFrenchNumber = (val) => {
-      if (val === null || val === undefined) return 0;
-      if (typeof val === "number") return val;
-      const s = String(val).replace(/\s/g, "");
-      // Remplacer séparateur millier éventuel "." et décimal ","
-      const normalized = s.replace(/\./g, "").replace(/,/g, ".");
-      const n = parseFloat(normalized);
-      return isNaN(n) ? 0 : n;
-    };
+    async function saveAll(){
+      const payload = {actesData,honorairesData,reconciledData,manualEntries,meta:{savedAt:new Date().toISOString()}};
+      await idbSet('snapshot', payload);
+      banner(`💾 Données sauvegardées (${formatDateTimeFR(new Date())})`);
+    }
+    async function loadAll(){
+      const snap = await idbGet('snapshot');
+      if(!snap) return alert('Aucune sauvegarde trouvée');
+      actesData = snap.actesData||[]; honorairesData = snap.honorairesData||[]; reconciledData = snap.reconciledData||[]; manualEntries = snap.manualEntries||[];
+      renderManualTable();
+      if(reconciledData.length){ displayResults(); document.getElementById('results').classList.add('show'); }
+      banner('✅ Sauvegarde rechargée');
+    }
+    async function clearAll(){ await idbDel('snapshot'); banner('🧹 Sauvegarde supprimée'); }
+    function banner(msg){ const b=document.getElementById('cacheBanner'); b.textContent=msg; b.classList.add('show'); setTimeout(()=>b.classList.remove('show'),3500); }
 
-    const toMoney = (n) => (Number(n) || 0).toFixed(2) + "€";
-
-    function excelDateToJSDate(serial) {
-      if (!serial && serial !== 0) return null;
-      if (serial instanceof Date) return new Date(serial.getFullYear(), serial.getMonth(), serial.getDate());
-      if (typeof serial === "string") {
-        // Essaye YYYY-MM-DD, DD/MM/YYYY
-        const s = serial.trim();
-        const m1 = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-        if (m1) return new Date(Number(m1[1]), Number(m1[2]) - 1, Number(m1[3]));
-        const m2 = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-        if (m2) return new Date(Number(m2[3]), Number(m2[2]) - 1, Number(m2[1]));
-        const d = new Date(s);
-        return isNaN(d) ? null : new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    // ===== UTILITAIRES =====
+    const normalizeString = (s="") => s.toString().normalize('NFD').replace(/\p{Diacritic}/gu,'').replace(/[^A-Za-z0-9\s'-]/g,' ').replace(/\s+/g,' ').trim().toUpperCase();
+    const normalizeDossier = (d="") => d.toString().replace(/\D/g,'').replace(/^0+/, '');
+    const parseFrenchNumber = (v)=>{ if(v==null) return 0; if(typeof v==='number') return v; const s=String(v).replace(/\s/g,''); return parseFloat(s.replace(/\./g,'').replace(/,/g,'.'))||0; };
+    const toMoney = (n)=> (Number(n)||0).toFixed(2)+'€';
+    function excelDateToJSDate(serial){
+      if(!serial&&serial!==0) return null;
+      if(serial instanceof Date) return new Date(serial.getFullYear(),serial.getMonth(),serial.getDate());
+      if(typeof serial==='string'){
+        const s=serial.trim();
+        const m1=s.match(/^(\d{4})-(\d{2})-(\d{2})$/); if(m1) return new Date(+m1[1],+m1[2]-1,+m1[3]);
+        const m2=s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/); if(m2) return new Date(+m2[3],+m2[2]-1,+m2[1]);
+        const d=new Date(s); return isNaN(d)?null:new Date(d.getFullYear(),d.getMonth(),d.getDate());
       }
-      // Excel serial
-      const utcDays = Math.floor(serial - 25569);
-      const utcValue = utcDays * 86400;
-      const dateInfo = new Date(utcValue * 1000);
-      return new Date(dateInfo.getFullYear(), dateInfo.getMonth(), dateInfo.getDate());
+      const utcDays=Math.floor(serial-25569); const utcValue=utcDays*86400; const dateInfo=new Date(utcValue*1000);
+      return new Date(dateInfo.getFullYear(),dateInfo.getMonth(),dateInfo.getDate());
     }
+    function formatDate(date){ if(!date) return ''; const d=new Date(date); if(isNaN(d)) return ''; const dd=String(d.getDate()).padStart(2,'0'); const mm=String(d.getMonth()+1).padStart(2,'0'); const yy=d.getFullYear(); return `${dd}/${mm}/${yy}`; }
+    function formatDateTimeFR(d){ const dd=String(d.getDate()).padStart(2,'0'); const mm=String(d.getMonth()+1).padStart(2,'0'); const yy=d.getFullYear(); const h=String(d.getHours()).padStart(2,'0'); const m=String(d.getMinutes()).padStart(2,'0'); return `${dd}/${mm}/${yy} ${h}h${m}`; }
+    function normalizeDateString(s){ if(!s) return ''; const str=String(s).trim(); if(/^\d{2}\/\d{2}\/\d{4}$/.test(str)) return str; const m1=str.match(/^(\d{4})-(\d{2})-(\d{2})$/); if(m1) return `${m1[3]}/${m1[2]}/${m1[1]}`; const d=new Date(str); return isNaN(d)?str:formatDate(d); }
+    const ymdToFr=(ymd)=> (ymd && /^\d{4}-\d{2}-\d{2}$/.test(ymd)) ? `${ymd.slice(8,10)}/${ymd.slice(5,7)}/${ymd.slice(0,4)}` : '';
 
-    function formatDate(date) {
-      if (!date) return "";
-      const d = new Date(date);
-      if (isNaN(d)) return "";
-      const day = String(d.getDate()).padStart(2, "0");
-      const month = String(d.getMonth() + 1).padStart(2, "0");
-      const year = d.getFullYear();
-      return `${day}/${month}/${year}`;
-    }
-
-    // ===== GESTION DES FICHIERS =====
-    document.getElementById("actesFile").addEventListener("change", (e) => {
-      const newFiles = Array.from(e.target.files);
-      newFiles.forEach((file) => {
-        if (!actesFiles.find((f) => f.name === file.name && f.size === file.size)) {
-          actesFiles.push(file);
-        }
-      });
-      updateFilesList("actes");
-      checkFilesReady();
-      e.target.value = "";
+    // ===== FICHIERS (UI) =====
+    document.getElementById('actesFile').addEventListener('change', (e)=>{
+      const nf=[...e.target.files];
+      nf.forEach(f=>{ if(!actesFiles.find(x=>x.name===f.name&&x.size===f.size)) actesFiles.push(f); });
+      updateFilesList('actes'); checkReady(); e.target.value='';
     });
-
-    document.getElementById("honorairesFiles").addEventListener("change", (e) => {
-      const newFiles = Array.from(e.target.files);
-      newFiles.forEach((file) => {
-        if (!honorairesFiles.find((f) => f.name === file.name && f.size === file.size)) {
-          honorairesFiles.push(file);
-        }
-      });
-      updateFilesList("honoraires");
-      checkFilesReady();
-      e.target.value = "";
+    document.getElementById('honorairesFiles').addEventListener('change', (e)=>{
+      const nf=[...e.target.files];
+      nf.forEach(f=>{ if(!honorairesFiles.find(x=>x.name===f.name&&x.size===f.size)) honorairesFiles.push(f); });
+      updateFilesList('honoraires'); checkReady(); e.target.value='';
     });
-
-    function updateFilesList(type) {
-      const files = type === "actes" ? actesFiles : honorairesFiles;
-      const listElement = document.getElementById(type === "actes" ? "actesFilesList" : "honorairesFilesList");
-      listElement.innerHTML = files
-        .map((file, index) => `
-          <div class="file-item">
-            <div class="file-info">
-              <div>${type === "actes" ? "📊" : "💰"}</div>
-              <div>
-                <div class="file-name">${file.name}</div>
-                <div class="file-size">${formatFileSize(file.size)}</div>
-              </div>
-            </div>
-            <button class="remove-file-btn" onclick="removeFile('${type}', ${index})">✕ Supprimer</button>
+    function updateFilesList(type){
+      const files = type==='actes'?actesFiles:honorairesFiles;
+      const list = document.getElementById(type==='actes'?'actesFilesList':'honorairesFilesList');
+      list.innerHTML = files.map((file,i)=>`
+        <div class="file-item">
+          <div class="file-info">
+            <div>${type==='actes'?'📊':'💰'}</div>
+            <div><div class="file-name">${file.name}</div><div class="file-size">${fmtSize(file.size)}</div></div>
           </div>
-        `)
-        .join("");
+          <button class="remove-file-btn" onclick="removeFile('${type}',${i})">✕ Supprimer</button>
+        </div>`).join('');
     }
+    function removeFile(type,i){ (type==='actes'?actesFiles:honorairesFiles).splice(i,1); updateFilesList(type); checkReady(); }
+    function fmtSize(b){ if(b===0) return '0 B'; const k=1024, s=['B','KB','MB','GB']; const i=Math.floor(Math.log(b)/Math.log(k)); return Math.round((b/Math.pow(k,i))*100)/100+' '+s[i]; }
+    function checkReady(){ document.getElementById('analyzeBtn').disabled = !(actesFiles.length && honorairesFiles.length); }
 
-    function removeFile(type, index) {
-      if (type === "actes") actesFiles.splice(index, 1);
-      else honorairesFiles.splice(index, 1);
-      updateFilesList(type);
-      checkFilesReady();
-    }
-
-    function formatFileSize(bytes) {
-      if (bytes === 0) return "0 Bytes";
-      const k = 1024;
-      const sizes = ["Bytes", "KB", "MB", "GB"];
-      const i = Math.floor(Math.log(bytes) / Math.log(k));
-      return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
-    }
-
-    function checkFilesReady() {
-      document.getElementById("analyzeBtn").disabled = !(actesFiles.length > 0 && honorairesFiles.length > 0);
-    }
-
-    document.getElementById("analyzeBtn").addEventListener("click", analyzeFiles);
-    document.getElementById("resetBtn").addEventListener("click", () => {
-      actesFiles = [];
-      honorairesFiles = [];
-      actesData = [];
-      honorairesData = [];
-      reconciledData = [];
-      updateFilesList("actes");
-      updateFilesList("honoraires");
-      checkFilesReady();
-      document.getElementById("results").classList.remove("show");
+    document.getElementById('analyzeBtn').addEventListener('click', analyzeFiles);
+    document.getElementById('resetBtn').addEventListener('click', ()=>{
+      actesFiles=[]; honorairesFiles=[]; actesData=[]; honorairesData=[]; reconciledData=[];
+      updateFilesList('actes'); updateFilesList('honoraires'); checkReady();
+      document.getElementById('results').classList.remove('show');
     });
 
-    document.querySelectorAll(".tab-btn").forEach((btn) => {
-      btn.addEventListener("click", function(){
-        const tab = this.dataset.tab;
-        document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
-        document.querySelectorAll(".tab-content").forEach((c) => c.classList.remove("active"));
-        this.classList.add("active");
-        document.getElementById(`tab-${tab}`).classList.add("active");
-      });
-    });
+    document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click', function(){
+      const t=this.dataset.tab;
+      document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(x=>x.classList.remove('active'));
+      this.classList.add('active'); document.getElementById(`tab-${t}`).classList.add('active');
+    }));
+
+    // Persistance UI
+    document.getElementById('btnLoadCache').addEventListener('click', loadAll);
+    document.getElementById('btnClearCache').addEventListener('click', clearAll);
+    const auto = document.getElementById('autoSave');
+    auto.checked = localStorage.getItem(LS_AUTOSAVE)==='1';
+    auto.addEventListener('change',e=>localStorage.setItem(LS_AUTOSAVE, e.target.checked?'1':'0'));
+    (async ()=>{
+      const s=await idbGet('snapshot');
+      if(s){
+        const b=document.getElementById('cacheBanner');
+        const ts = s.meta?.savedAt ? formatDateTimeFR(new Date(s.meta.savedAt)) : '';
+        b.innerHTML = `📦 Sauvegarde détectée (${ts}). <button class="btn btn-secondary" style="padding:8px 12px;margin-left:8px" onclick="(async()=>{await loadAll()})()">Charger</button>`;
+        b.classList.add('show');
+      }
+    })();
 
     // ===== LECTURE FICHIERS =====
     async function analyzeFiles(){
-      document.getElementById("loading").classList.add("show");
-      document.getElementById("results").classList.remove("show");
-      try {
+      document.getElementById('loading').classList.add('show');
+      document.getElementById('results').classList.remove('show');
+      try{
         // Excel actes
-        actesData = [];
-        for (const file of actesFiles){
-          const data = await readExcelFile(file);
-          actesData = actesData.concat(data);
-        }
+        actesData=[]; for(const f of actesFiles){ actesData = actesData.concat(await readExcelFile(f)); }
         // CSV honoraires
-        honorairesData = [];
-        for (const file of honorairesFiles){
-          const data = await readCSVFile(file);
-          honorairesData = honorairesData.concat(data);
-        }
-        // Réconciliation
-        reconcileData();
-        // Affichage
-        displayResults();
-        document.getElementById("loading").classList.remove("show");
-        document.getElementById("results").classList.add("show");
-      } catch(err){
-        console.error(err);
-        alert("Erreur lors de l'analyse des fichiers : " + err.message);
-        document.getElementById("loading").classList.remove("show");
+        honorairesData=[]; for(const f of honorairesFiles){ honorairesData = honorairesData.concat(await readCSVFile(f)); }
+        // Réconciliation + rendu
+        reconcileData(); displayResults();
+        document.getElementById('loading').classList.remove('show');
+        document.getElementById('results').classList.add('show');
+        if(auto.checked) await saveAll();
+      }catch(err){
+        console.error(err); alert("Erreur lors de l'analyse des fichiers : "+err.message);
+        document.getElementById('loading').classList.remove('show');
       }
     }
 
@@ -370,12 +365,10 @@ let manualEntries = JSON.parse(localStorage.getItem('manualEntries_v1')||'[]');
         const reader = new FileReader();
         reader.onload = (e) => {
           try{
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type:"array" });
+            const workbook = XLSX.read(new Uint8Array(e.target.result), { type:"array" });
             const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
             const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header:1 });
 
-            // Recherche d'entêtes (ligne contenant « Numéro de dossier »)
             let headerRow = -1;
             for(let i=0;i<jsonData.length;i++){
               if (jsonData[i].some((cell)=>String(cell||"").toLowerCase().includes("numéro de dossier"))) { headerRow = i; break; }
@@ -407,18 +400,13 @@ let manualEntries = JSON.parse(localStorage.getItem('manualEntries_v1')||'[]');
           complete: (results)=>{
             try{
               if (results.data.length < 7) return reject(new Error("Le fichier CSV ne contient pas assez de lignes"));
-              // Noms de colonnes attendus à la ligne 6 (index 5) dans vos exports.
-              const headers = [
-                "Praticien","Dossier","Patient","Libellé","Transfert","Date Acte","Serv.","Coeff.","Pertes","Mt Hors Dépass.","Dépass.","Total","Vide"
-              ];
+              const headers = ["Praticien","Dossier","Patient","Libellé","Transfert","Date Acte","Serv.","Coeff.","Pertes","Mt Hors Dépass.","Dépass.","Total","Vide"];
               const dataRows = results.data.slice(6);
               const cleaned = dataRows.map((row)=>{
                 if (!row || row.length < 6) return null;
                 const obj = {};
                 headers.forEach((h,i)=>{ obj[h] = (row[i] ? row[i].replace(/"/g,"").trim() : ""); });
-                // Normalise date en JJ/MM/AAAA si nécessaire
                 obj["Date Acte"] = normalizeDateString(obj["Date Acte"]);
-                // Normalise le total en nombre
                 obj["Total"] = parseFrenchNumber(obj["Total"]);
                 obj["Dossier"] = normalizeDossier(obj["Dossier"]);
                 obj["Patient_norm"] = normalizeString(obj["Patient"]);
@@ -432,22 +420,8 @@ let manualEntries = JSON.parse(localStorage.getItem('manualEntries_v1')||'[]');
       });
     }
 
-    function normalizeDateString(s){
-      if (!s) return "";
-      const str = String(s).trim();
-      // déjà JJ/MM/AAAA ?
-      if (/^\d{2}\/\d{2}\/\d{4}$/.test(str)) return str;
-      // AAAA-MM-JJ -> JJ/MM/AAAA
-      const m1 = str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-      if (m1) return `${m1[3]}/${m1[2]}/${m1[1]}`;
-      // Date parsable
-      const d = new Date(str);
-      return isNaN(d) ? str : formatDate(d);
-    }
-
-    // ===== RÉCONCILIATION (indexation O(1)) =====
+    // ===== RÉCONCILIATION =====
     function reconcileData(){
-      // Index des honoraires : key = dossier|patient|date
       const honIndex = new Map();
       for (const hon of honorairesData){
         const key = `${hon["Dossier"]}|${hon["Patient_norm"]}|${hon["Date Acte"]}`;
@@ -482,28 +456,27 @@ let manualEntries = JSON.parse(localStorage.getItem('manualEntries_v1')||'[]');
       });
     }
 
-    // ===== AFFICHAGE =====
+    // ===== AFFICHAGE GLOBAL =====
     function displayResults(){
       const totalActes = reconciledData.length;
       const actesFactures = reconciledData.filter((a)=>a["Facturé"] === "Oui").length;
       const actesNonFactures = totalActes - actesFactures;
-      const montantTotal = reconciledData.reduce((s,a)=> s + (a.Montant_num||0), 0);
       const montantNonFacture = reconciledData.filter((a)=>a["Facturé"] === "Non").reduce((s,a)=> s + (a.Montant_num||0), 0);
 
       document.getElementById("stats").innerHTML = `
         <div class="stat-card"><div class="stat-value">${totalActes}</div><div class="stat-label">Total actes</div></div>
         <div class="stat-card success"><div class="stat-value">${actesFactures}</div><div class="stat-label">Actes facturés</div></div>
         <div class="stat-card warning"><div class="stat-value">${actesNonFactures}</div><div class="stat-label">Actes non facturés</div></div>
-        <div class="stat-card warning"><div class="stat-value">${toMoney(montantNonFacture)}</div><div class="stat-label">Montant non facturé</div></div>
-      `;
+        <div class="stat-card warning"><div class="stat-value">${toMoney(montantNonFacture)}</div><div class="stat-label">Montant non facturé</div></div>`;
 
-      displayTable("non-factures", reconciledData.filter((a)=>a["Facturé"] === "Non"));
-      displayTable("factures", reconciledData.filter((a)=>a["Facturé"] === "Oui"));
-      displayTable("tous", reconciledData);
-      displayMonthlySummary();
+      renderTable("non-factures", reconciledData.filter((a)=>a["Facturé"] !== "Oui"));
+      renderTable("factures", reconciledData.filter((a)=>a["Facturé"] === "Oui"));
+      renderTable("tous", reconciledData);
+      renderMonthly();
+      renderDailyComparison(); // <— comparatif quotidien
     }
 
-    function displayTable(type, data){
+    function renderTable(type, data){
       const table = document.getElementById(`table-${type}`);
       if (!data.length){
         table.innerHTML = '<p style="padding:20px;text-align:center;color:#666">Aucune donnée à afficher</p>';
@@ -513,220 +486,232 @@ let manualEntries = JSON.parse(localStorage.getItem('manualEntries_v1')||'[]');
         '<th>Date</th><th>Nom Patient</th><th>N° Dossier</th><th>Prestation</th><th>Montant</th><th>Statut</th><th>Détails</th>' +
         '</tr></thead><tbody>';
       for (const row of data){
-        const statusClass = row["Facturé"] === "Oui" ? "status-factured" : "status-not-factured";
-        const statusText = row["Facturé"] === "Oui" ? "✓ Facturé" : "✗ Non facturé";
-        html += '<tr>' +
-          `<td>${row["Date_Formatee"] || ""}</td>`+
-          `<td>${row["Nom_Complet"] || ""}</td>`+
-          `<td>${row["_DOSSIER_NORM"] || ""}</td>`+
-          `<td>${row["Prestation"] || ""}</td>`+
-          `<td>${toMoney(row["Montant_num"])}</td>`+
-          `<td><span class="status-badge ${statusClass}">${statusText}</span></td>`+
-          `<td>${row["Détails_Facture"] || ""}</td>`+
-        '</tr>';
+        const ok = row["Facturé"] === "Oui";
+        html += `<tr>
+          <td>${row["Date_Formatee"]||""}</td>
+          <td>${row["Nom_Complet"]||""}</td>
+          <td>${row["_DOSSIER_NORM"]||""}</td>
+          <td>${row["Prestation"]||""}</td>
+          <td>${toMoney(row["Montant_num"])}</td>
+          <td><span class="status-badge ${ok?'status-factured':'status-not-factured'}">${ok?'✓ Facturé':'✗ Non facturé'}</span></td>
+          <td>${row["Détails_Facture"]||""}</td>
+        </tr>`;
       }
       html += '</tbody>';
       table.innerHTML = html;
     }
 
-    // ===== RÉCAP MENSUEL =====
-    function displayMonthlySummary(){
-  const monthlyData = {};
-  for (const acte of reconciledData){
-    const date = acte["Date_Formatee"]; if (!date) continue;
-    const [jj, mm, yyyy] = date.split("/");
-    if (!jj || !mm || !yyyy) continue;
-    const key = `${mm}/${yyyy}`;
-    const name = getMonthName(Number(mm), Number(yyyy));
-    if (!monthlyData[key]){
-      monthlyData[key] = {
-        name,total:0,factures:0,nonFactures:0,
-        montantTotal:0,montantFacture:0,montantNonFacture:0,
-      };
-    }
-    const montant = acte.Montant_num || 0;
-    monthlyData[key].total++;
-    monthlyData[key].montantTotal += montant;
-    if (acte["Facturé"] === "Oui"){ monthlyData[key].factures++; monthlyData[key].montantFacture += montant; }
-    else { monthlyData[key].nonFactures++; monthlyData[key].montantNonFacture += montant; }
-  }
-  // Agrégation des saisies manuelles par mois
-  const manualAgg = {};
-  for(const e of manualEntries){
-    const d = new Date(e.date); if(isNaN(d)) continue;
-    const mm = String(d.getMonth()+1).padStart(2,'0');
-    const yy = d.getFullYear();
-    const key = `${mm}/${yy}`;
-    manualAgg[key] = (manualAgg[key]||0) + Number(e.count||0);
-  }
-  const sorted = Object.keys(monthlyData).sort((a,b)=>{
-    const [ma,ya] = a.split('/').map(Number);
-    const [mb,yb] = b.split('/').map(Number);
-    return ya !== yb ? ya - yb : ma - mb;
-  });
-  let summaryHTML = '<div class="monthly-summary-grid">';
-  for (const k of sorted){
-    const d = monthlyData[k];
-    const taux = d.total ? (d.factures / d.total * 100).toFixed(1) : 0;
-    const manu = manualAgg[k] || 0;
-    const ecart = manu - d.total;
-    summaryHTML += `
-      <div class="month-card">
-        <h3>📅 ${d.name}</h3>
-        <div class="month-stats">
-          <div class="month-stat-row"><span class="month-stat-label">Total actes (fichiers)</span><span class="month-stat-value">${d.total}</span></div>
-          <div class="month-stat-row"><span class="month-stat-label">Actes facturés</span><span class="month-stat-value success">${d.factures} (${taux}%)</span></div>
-          <div class="month-stat-row"><span class="month-stat-label">Actes non facturés</span><span class="month-stat-value warning">${d.nonFactures}</span></div>
-          <div class="month-stat-row"><span class="month-stat-label">Saisie manuelle</span><span class="month-stat-value">${manu}</span></div>
-          <div class="month-stat-row"><span class="month-stat-label">Écart (manuel − fichiers)</span><span class="month-stat-value ${ecart===0?'':'warning'}">${ecart}</span></div>
-          <div class="month-stat-row"><span class="month-stat-label">Montant total</span><span class="month-stat-value amount">${toMoney(d.montantTotal)}</span></div>
-          <div class="month-stat-row"><span class="month-stat-label">Montant facturé</span><span class="month-stat-value success">${toMoney(d.montantFacture)}</span></div>
-          <div class="month-stat-row"><span class="month-stat-label">Montant non facturé</span><span class="month-stat-value warning">${toMoney(d.montantNonFacture)}</span></div>
-        </div>
-      </div>`;
-  }
-  summaryHTML += '</div>';
-  if (sorted.length > 1){
-    summaryHTML += `<div class=\"comparison-section\"><h3>📊 Comparaison des mois</h3><p class=\"note\">Inclut la saisie manuelle et l'écart par mois.</p></div>`;
-  }
-  document.getElementById("monthly-summary").innerHTML = summaryHTML;
-  displayMonthlyTable(monthlyData, sorted);
-}
-
-    function getMonthName(month, year){
-      const months = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
-      return `${months[month-1]} ${year}`;
-    }
-
-    function displayMonthlyTable(monthlyData, sorted){
-      const table = document.getElementById("table-monthly");
-      if (!sorted.length){
-        table.innerHTML = '<p style="padding:20px;text-align:center;color:#666">Aucune donnée mensuelle disponible</p>';
-        return;
-      }
-      let html = '<thead><tr>'+
-        '<th>Mois</th><th>Total Actes</th><th>Facturés</th><th>Non Facturés</th><th>Taux Facturation</th><th>Montant Total</th><th>Montant Facturé</th><th>Montant Non Facturé</th>'+
-        '</tr></thead><tbody>';
-      const tot = { total:0, factures:0, nonFactures:0, montantTotal:0, montantFacture:0, montantNonFacture:0 };
-      for (const k of sorted){
-        const d = monthlyData[k];
-        const taux = d.total ? (d.factures / d.total * 100).toFixed(1) : 0;
-        html += '<tr>'+
-          `<td><strong>${d.name}</strong></td>`+
-          `<td>${d.total}</td>`+
-          `<td><span style="color:#28a745;font-weight:600">${d.factures}</span></td>`+
-          `<td><span style="color:#e74c3c;font-weight:600">${d.nonFactures}</span></td>`+
-          `<td><strong>${taux}%</strong></td>`+
-          `<td>${toMoney(d.montantTotal)}</td>`+
-          `<td style="color:#28a745">${toMoney(d.montantFacture)}</td>`+
-          `<td style="color:#e74c3c">${toMoney(d.montantNonFacture)}</td>`+
-          '</tr>';
-        tot.total += d.total; tot.factures += d.factures; tot.nonFactures += d.nonFactures;
-        tot.montantTotal += d.montantTotal; tot.montantFacture += d.montantFacture; tot.montantNonFacture += d.montantNonFacture;
-      }
-      if (sorted.length > 1){
-        const tauxG = tot.total ? (tot.factures / tot.total * 100).toFixed(1) : 0;
-        html += '<tr style="background:#f8f9fa;font-weight:bold;border-top:2px solid #667eea">'+
-          '<td><strong>TOTAL GÉNÉRAL</strong></td>'+
-          `<td>${tot.total}</td>`+
-          `<td style="color:#28a745">${tot.factures}</td>`+
-          `<td style="color:#e74c3c">${tot.nonFactures}</td>`+
-          `<td><strong>${tauxG}%</strong></td>`+
-          `<td>${toMoney(tot.montantTotal)}</td>`+
-          `<td style="color:#28a745">${toMoney(tot.montantFacture)}</td>`+
-          `<td style="color:#e74c3c">${toMoney(tot.montantNonFacture)}</td>`+
-          '</tr>';
-      }
-      html += '</tbody>';
-      table.innerHTML = html;
-    }
-
-    // ===== SAISIE MANUELLE (logique) =====
-(function(){
-  const addBtn = document.getElementById('btnAddManual');
-  const expBtn = document.getElementById('btnExportManual');
-  if(addBtn){ addBtn.addEventListener('click', ()=>{
-    const d = document.getElementById('manualDate').value;
-    const c = Number(document.getElementById('manualCount').value||0);
-    if(!d) return alert('Choisis une date');
-    if(c<0) return alert('Le nombre doit être ≥ 0');
-    const i = manualEntries.findIndex(x=>x.date===d);
-    if(i>-1) manualEntries[i].count=c; else manualEntries.push({date:d,count:c});
-    localStorage.setItem('manualEntries_v1', JSON.stringify(manualEntries));
-    renderManualTable();
-    displayMonthlySummary();
-  }); }
-  if(expBtn){ expBtn.addEventListener('click', ()=>{
-    if(!manualEntries.length) return alert('Aucune saisie');
-    const rows=[["Date","Nombre d'actes"]].concat(
-      manualEntries.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(x=>[x.date,x.count])
-    );
-    const ws=XLSX.utils.aoa_to_sheet(rows); const wb=XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb,ws,'Saisie'); XLSX.writeFile(wb,'saisie_manuelle.csv');
-  }); }
-  renderManualTable();
-})();
-
-function renderManualTable(){
-  const t=document.getElementById('manual-table'); if(!t) return;
-  if(!manualEntries.length){
-    t.innerHTML='<thead><tr><th>Date</th><th>Nombre d\'actes</th><th></th></tr></thead><tbody><tr><td colspan="3" style="padding:12px;color:#666">Aucune saisie</td></tr></tbody>';
-    return;
-  }
-  let h='<thead><tr><th>Date</th><th>Nombre d\'actes</th><th>Action</th></tr></thead><tbody>';
-  for(const e of manualEntries.slice().sort((a,b)=>a.date.localeCompare(b.date))){
-    h+=`<tr><td>${e.date}</td><td>${e.count}</td><td><button class="remove-file-btn" onclick="deleteManual('${e.date}')">Supprimer</button></td></tr>`;
-  }
-  t.innerHTML=h+'</tbody>';
-}
-window.deleteManual = function(date){ manualEntries = manualEntries.filter(x=>x.date!==date); localStorage.setItem('manualEntries_v1', JSON.stringify(manualEntries)); renderManualTable(); displayMonthlySummary(); };
-
-// ===== EXPORTS =====
-    function exportMonthlyReport(){
+    // ===== RÉCAP MENSUEL + COMPARAISON SAISIE =====
+    function renderMonthly(){
       const monthlyData = {};
       for (const acte of reconciledData){
         const date = acte["Date_Formatee"]; if (!date) continue;
-        const [jj,mm,yyyy] = date.split('/')
+        const [jj, mm, yyyy] = date.split("/");
         if (!jj || !mm || !yyyy) continue;
         const key = `${mm}/${yyyy}`;
-        const name = getMonthName(Number(mm), Number(yyyy));
-        if (!monthlyData[key]) monthlyData[key] = { name,total:0,factures:0,nonFactures:0,montantTotal:0,montantFacture:0,montantNonFacture:0 };
+        if (!monthlyData[key]){
+          monthlyData[key] = { name:monthName(Number(mm),Number(yyyy)), total:0, fact:0, nonf:0, totalE:0, factE:0, nonfE:0 };
+        }
         const m = acte.Montant_num || 0;
         monthlyData[key].total++;
-        monthlyData[key].montantTotal += m;
-        if (acte["Facturé"] === "Oui"){ monthlyData[key].factures++; monthlyData[key].montantFacture += m; }
-        else { monthlyData[key].nonFactures++; monthlyData[key].montantNonFacture += m; }
+        monthlyData[key].totalE += m;
+        if (acte["Facturé"] === "Oui"){ monthlyData[key].fact++; monthlyData[key].factE += m; }
+        else { monthlyData[key].nonf++; monthlyData[key].nonfE += m; }
       }
+      // Saisie manuelle agrégée par mois
+      const manualAgg = {};
+      for (const e of manualEntries){
+        const d = new Date(e.date); if (isNaN(d)) continue;
+        const mm = String(d.getMonth()+1).padStart(2,'0'); const yy = d.getFullYear();
+        const key = `${mm}/${yy}`; manualAgg[key] = (manualAgg[key]||0) + Number(e.count||0);
+      }
+
       const sorted = Object.keys(monthlyData).sort((a,b)=>{ const [ma,ya]=a.split('/').map(Number); const [mb,yb]=b.split('/').map(Number); return ya!==yb?ya-yb:ma-mb; });
-      const exportData = sorted.map((k)=>{
+
+      // Cards
+      let cards = '<div class="monthly-summary-grid">';
+      for (const k of sorted){
+        const d = monthlyData[k]; const taux = d.total ? (d.fact/d.total*100).toFixed(1) : 0;
+        const manu = manualAgg[k] || 0;
+        cards += `
+          <div class="month-card">
+            <h3>📅 ${d.name}</h3>
+            <div class="month-stats">
+              <div class="month-stat-row"><span class="month-stat-label">Total actes (fichiers)</span><span class="month-stat-value">${d.total}</span></div>
+              <div class="month-stat-row"><span class="month-stat-label">Actes facturés</span><span class="month-stat-value success">${d.fact} (${taux}%)</span></div>
+              <div class="month-stat-row"><span class="month-stat-label">Actes non facturés</span><span class="month-stat-value warning">${d.nonf}</span></div>
+              <div class="month-stat-row"><span class="month-stat-label">Saisie manuelle</span><span class="month-stat-value">${manu}</span></div>
+              <div class="month-stat-row"><span class="month-stat-label">Écart (manuel − fichiers)</span><span class="month-stat-value ${manu-d.total===0?'':'warning'}">${manu - d.total}</span></div>
+              <div class="month-stat-row"><span class="month-stat-label">Montant total</span><span class="month-stat-value amount">${toMoney(d.totalE)}</span></div>
+            </div>
+          </div>`;
+      }
+      cards += '</div>';
+      document.getElementById('monthly-summary').innerHTML = cards;
+
+      // Tableau
+      const table = document.getElementById('table-monthly');
+      if (!sorted.length){
+        table.innerHTML = '<p style="padding:20px;text-align:center;color:#666">Aucune donnée mensuelle disponible</p>'; return;
+      }
+      let html = '<thead><tr><th>Mois</th><th>Total (fichiers)</th><th>Facturés</th><th>Non facturés</th><th>Taux</th><th>Saisie manuelle</th><th>Écart</th><th>Montant total</th><th>Montant facturé</th><th>Montant non facturé</th></tr></thead><tbody>';
+      const tot = {t:0,f:0,n:0,tm:0,tf:0,tn:0,man:0};
+      for (const k of sorted){
         const d = monthlyData[k];
-        const taux = d.total ? (d.factures / d.total * 100).toFixed(1) + '%' : '0%';
-        return {
-          'Mois': d.name,
-          'Total Actes': d.total,
-          'Actes Facturés': d.factures,
-          'Actes Non Facturés': d.nonFactures,
-          'Taux de Facturation': taux,
-          'Montant Total (€)': (d.montantTotal||0).toFixed(2),
-          'Montant Facturé (€)': (d.montantFacture||0).toFixed(2),
-          'Montant Non Facturé (€)': (d.montantNonFacture||0).toFixed(2)
-        };
+        const manu = manualAgg[k] || 0;
+        const taux = d.total ? (d.fact/d.total*100).toFixed(1) : 0;
+        html += `<tr>
+          <td><strong>${d.name}</strong></td>
+          <td>${d.total}</td>
+          <td style="color:#28a745">${d.fact}</td>
+          <td style="color:#e74c3c">${d.nonf}</td>
+          <td><strong>${taux}%</strong></td>
+          <td>${manu}</td>
+          <td style="font-weight:600">${manu - d.total}</td>
+          <td>${toMoney(d.totalE)}</td>
+          <td style="color:#28a745">${toMoney(d.factE)}</td>
+          <td style="color:#e74c3c">${toMoney(d.nonfE)}</td>
+        </tr>`;
+        tot.t+=d.total; tot.f+=d.fact; tot.n+=d.nonf; tot.tm+=d.totalE; tot.tf+=d.factE; tot.tn+=d.nonfE; tot.man+=manu;
+      }
+      if (sorted.length>1){
+        const tauxG = tot.t ? (tot.f/tot.t*100).toFixed(1) : 0;
+        html += `<tr style="background:#f8f9fa;font-weight:700;border-top:2px solid #667eea">
+          <td>TOTAL GÉNÉRAL</td><td>${tot.t}</td><td style="color:#28a745">${tot.f}</td><td style="color:#e74c3c">${tot.n}</td>
+          <td>${tauxG}%</td><td>${tot.man}</td><td>${tot.man - tot.t}</td>
+          <td>${toMoney(tot.tm)}</td><td style="color:#28a745">${toMoney(tot.tf)}</td><td style="color:#e74c3c">${toMoney(tot.tn)}</td>
+        </tr>`;
+      }
+      table.innerHTML = html + '</tbody>';
+    }
+    function monthName(m,y){ const M=["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"]; return `${M[m-1]} ${y}`; }
+
+    // ===== SAISIE MANUELLE =====
+    document.getElementById('btnAddManual').addEventListener('click', async ()=>{
+      const d=document.getElementById('manualDate').value;
+      const c=Number(document.getElementById('manualCount').value||0);
+      if(!d) return alert('Choisis une date'); if(c<0) return alert('Le nombre doit être ≥ 0');
+      const i=manualEntries.findIndex(x=>x.date===d);
+      if(i>-1) manualEntries[i].count=c; else manualEntries.push({date:d,count:c});
+      localStorage.setItem('manualEntries_v1', JSON.stringify(manualEntries));
+      renderManualTable(); renderMonthly(); renderDailyComparison();
+      await saveAll();
+    });
+    document.getElementById('btnExportManual').addEventListener('click', ()=>{
+      if(!manualEntries.length) return alert('Aucune saisie');
+      const rows=[["Date","Nombre d'actes"]].concat(manualEntries.sort((a,b)=>a.date.localeCompare(b.date)).map(x=>[x.date,x.count]));
+      const ws=XLSX.utils.aoa_to_sheet(rows); const wb=XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb,ws,'Saisie'); XLSX.writeFile(wb,'saisie_manuelle.csv');
+    });
+
+    function renderManualTable(){
+      const t=document.getElementById('manual-table');
+      if(!manualEntries.length){
+        t.innerHTML='<thead><tr><th>Date</th><th>Nombre d\'actes</th><th></th></tr></thead><tbody><tr><td colspan="3" style="padding:12px;color:#666">Aucune saisie</td></tr></tbody>';
+        return;
+      }
+      let h='<thead><tr><th>Date</th><th>Nombre d\'actes</th><th>Action</th></tr></thead><tbody>';
+      for(const e of manualEntries.sort((a,b)=>a.date.localeCompare(b.date))){
+        h+=`<tr><td>${e.date}</td><td>${e.count}</td><td><button class="remove-file-btn" onclick="deleteManual('${e.date}')">Supprimer</button></td></tr>`;
+      }
+      t.innerHTML=h+'</tbody>';
+    }
+    window.deleteManual = async function(date){
+      manualEntries = manualEntries.filter(x=>x.date!==date);
+      localStorage.setItem('manualEntries_v1', JSON.stringify(manualEntries));
+      renderManualTable(); renderMonthly(); renderDailyComparison();
+      await saveAll();
+    };
+
+    // ===== COMPARATIF QUOTIDIEN =====
+    function aggregateFilesByDay(){
+      const map = new Map();
+      for(const a of (reconciledData||[])){
+        const d = a['Date_Formatee'];
+        if(!d) continue;
+        map.set(d, (map.get(d)||0)+1);
+      }
+      return map; // clé = 'DD/MM/YYYY', valeur = nb actes fichiers
+    }
+    function buildDailyComparison(){
+      const filesByDay = aggregateFilesByDay();
+      const manualByDay = new Map();
+      for(const e of (manualEntries||[])){
+        const d = ymdToFr(e.date);
+        if(!d) continue;
+        manualByDay.set(d, (manualByDay.get(d)||0) + Number(e.count||0));
+      }
+      const allDates = new Set([...filesByDay.keys(), ...manualByDay.keys()]);
+      const sorted = [...allDates].sort((A,B)=>{
+        const [aD,aM,aY] = A.split('/').map(Number);
+        const [bD,bM,bY] = B.split('/').map(Number);
+        return new Date(aY,aM-1,aD) - new Date(bY,bM-1,bD);
       });
-      const ws = XLSX.utils.json_to_sheet(exportData);
+      return sorted.map(d=>({ date:d, fichiers:(filesByDay.get(d)||0), manuel:(manualByDay.get(d)||0), ecart:(manualByDay.get(d)||0)-(filesByDay.get(d)||0) }));
+    }
+    function renderDailyComparison(){
+      const table = document.getElementById('table-comparatif');
+      if(!table) return;
+      const rows = buildDailyComparison();
+      if(!rows.length){
+        table.innerHTML = '<p style="padding:20px;text-align:center;color:#666">Aucune donnée à afficher</p>';
+        return;
+      }
+      let html = '<thead><tr><th>Date</th><th>Actes (fichiers)</th><th>Actes saisis</th><th>Écart (manuel − fichiers)</th></tr></thead><tbody>';
+      let totF=0, totM=0;
+      for(const r of rows){
+        totF += r.fichiers; totM += r.manuel;
+        const cls = r.ecart===0 ? '' : (r.ecart>0 ? 'style="color:#28a745;font-weight:600"' : 'style="color:#e74c3c;font-weight:600"');
+        html += `<tr><td>${r.date}</td><td>${r.fichiers}</td><td>${r.manuel}</td><td ${cls}>${r.ecart}</td></tr>`;
+      }
+      const totE = totM - totF;
+      const clsTot = totE===0 ? '' : (totE>0 ? 'style="color:#28a745;font-weight:700"' : 'style="color:#e74c3c;font-weight:700"');
+      html += `<tr style="background:#f8f9fa;font-weight:700;border-top:2px solid #667eea"><td>TOTAUX</td><td>${totF}</td><td>${totM}</td><td ${clsTot}>${totE}</td></tr>`;
+      html += '</tbody>';
+      table.innerHTML = html;
+    }
+    function exportDailyComparison(){
+      const data = buildDailyComparison();
+      if(!data.length){ alert('Aucune donnée à exporter'); return; }
+      const exportRows = data.map(r => ({
+        'Date': r.date,
+        'Actes (fichiers)': r.fichiers,
+        'Actes saisis': r.manuel,
+        'Écart (manuel − fichiers)': r.ecart
+      }));
+      const ws = XLSX.utils.json_to_sheet(exportRows);
       const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Comparatif quotidien');
+      XLSX.writeFile(wb, 'comparatif_quotidien.xlsx');
+    }
+
+    // ===== EXPORTS =====
+    function exportMonthlyReport(){
+      const monthly={};
+      for(const a of reconciledData){
+        const date=a['Date_Formatee']; if(!date) continue;
+        const [jj,mm,yy]=date.split('/');
+        const key=`${mm}/${yy}`; const name=monthName(+mm,+yy);
+        if(!monthly[key]) monthly[key]={name,total:0,fact:0,nonf:0,totalE:0,factE:0,nonfE:0};
+        const m=a.Montant_num||0; monthly[key].total++; monthly[key].totalE+=m;
+        if(a['Facturé']==='Oui'){ monthly[key].fact++; monthly[key].factE+=m; } else { monthly[key].nonf++; monthly[key].nonfE+=m; }
+      }
+      const keys=Object.keys(monthly).sort((a,b)=>{ const [ma,ya]=a.split('/').map(Number); const [mb,yb]=b.split('/').map(Number); return ya!==yb?ya-yb:ma-mb; });
+      const exportData = keys.map(k=>{
+        const d=monthly[k]; const taux=d.total?((d.fact/d.total*100).toFixed(1)+'%'):'0%';
+        return {'Mois':d.name,'Total Actes':d.total,'Actes Facturés':d.fact,'Actes Non Facturés':d.nonf,'Taux de Facturation':taux,'Montant Total (€)':(d.totalE||0).toFixed(2),'Montant Facturé (€)':(d.factE||0).toFixed(2),'Montant Non Facturé (€)':(d.nonfE||0).toFixed(2)};
+      });
+      const ws = XLSX.utils.json_to_sheet(exportData); const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Récapitulatif Mensuel');
-      const today = new Date();
-      const filename = `Recapitulatif_Mensuel_${today.getFullYear()}_${String(today.getMonth()+1).padStart(2,'0')}.xlsx`;
-      XLSX.writeFile(wb, filename);
+      const now=new Date(); const name=`Recapitulatif_Mensuel_${now.getFullYear()}_${String(now.getMonth()+1).padStart(2,'0')}.xlsx`;
+      XLSX.writeFile(wb, name);
     }
 
     function exportToExcel(type){
       let data, filename;
-      switch(type){
-        case 'non-factures': data = reconciledData.filter((a)=>a['Facturé']==='Non'); filename='actes_non_factures.xlsx'; break;
-        case 'factures': data = reconciledData.filter((a)=>a['Facturé']==='Oui'); filename='actes_factures.xlsx'; break;
-        default: data = reconciledData; filename='tous_les_actes.xlsx';
-      }
+      if(type==='non-factures'){ data=reconciledData.filter(a=>a['Facturé']!=='Oui'); filename='actes_non_factures.xlsx'; }
+      else if(type==='factures'){ data=reconciledData.filter(a=>a['Facturé']==='Oui'); filename='actes_factures.xlsx'; }
+      else { data=reconciledData; filename='tous_les_actes.xlsx'; }
       const rows = data.map((r)=>({
         'Date': r['Date_Formatee'],
         'Nom Patient': r['Nom_Complet'],
@@ -741,6 +726,9 @@ window.deleteManual = function(date){ manualEntries = manualEntries.filter(x=>x.
       XLSX.utils.book_append_sheet(wb, ws, 'Actes');
       XLSX.writeFile(wb, filename);
     }
+
+    // — init affichage saisie
+    renderManualTable();
   </script>
 </body>
 </html>
