@@ -41,7 +41,7 @@
     .month-stat-value.warning{color:#e74c3c}
     .month-stat-value.amount{color:#667eea}
     .comparison-section{background:#f8f9fa;border-radius:10px;padding:20px;margin:20px 0}
-    .action-buttons{display:flex;gap:15px;margin-top:25px}
+    .action-buttons{display:flex;gap:15px;margin-top:25px;flex-wrap:wrap}
     .btn{padding:15px 30px;border:none;border-radius:8px;font-size:1.1em;font-weight:600;cursor:pointer;transition:.3s;flex:1}
     .btn-primary{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff}
     .btn-primary:hover{transform:translateY(-2px);box-shadow:0 5px 15px rgba(102,126,234,.4)}
@@ -76,14 +76,13 @@
     .spinner{border:4px solid #f3f3f3;border-top:4px solid #667eea;border-radius:50%;width:50px;height:50px;animation:spin 1s linear infinite;margin:0 auto 15px}
     @keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
     .note{font-size:.9em;color:#555;margin-top:8px}
-    /* ---- Saisie manuelle ---- */
     .manual-section{background:#f2f7ff;border:1px solid #d9e3ff;border-radius:10px;padding:20px;margin-bottom:25px}
     .manual-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:10px}
     .manual-grid input{width:100%;padding:10px;border:1px solid #cdd6f4;border-radius:8px}
-    .manual-actions{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}
-    .btn-ghost{background:#eef2ff;color:#3f51b5;border:1px solid #c5cae9}
-    .btn-ghost:hover{background:#dfe5ff}
     .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#eef2ff;color:#3f51b5;font-weight:600}
+    .sync-section{background:#f8fff2;border:1px solid #d7efc5;border-radius:10px;padding:16px;margin:18px 0}
+    .sync-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
+    .sync-grid input{width:100%;padding:10px;border:1px solid #cfe6b3;border-radius:8px}
   </style>
 </head>
 <body>
@@ -123,28 +122,49 @@
         </div>
       </div>
 
-      <!-- ✍️ Saisie manuelle quotidienne -->
+      <!-- Saisie manuelle quotidienne par Mois/Année -->
       <div class="manual-section">
-        <h2>✍️ Saisie manuelle quotidienne</h2>
-        <p class="note">Ajoutez chaque jour le <strong>nombre d'actes réalisés</strong> pour comparer avec les actes importés.</p>
+        <h2>✍️ Saisie manuelle quotidienne (conservée par Mois/Année)</h2>
         <div class="manual-grid">
           <div>
-            <label for="manualDate" class="note">Date</label>
+            <label class="note" for="manualDate">Date</label>
             <input type="date" id="manualDate" />
           </div>
           <div>
-            <label for="manualCount" class="note">Nombre d'actes</label>
+            <label class="note" for="manualCount">Nombre d'actes</label>
             <input type="number" id="manualCount" min="0" placeholder="0" />
           </div>
         </div>
-        <div class="manual-actions">
-          <button class="btn btn-ghost" id="manualAddBtn">➕ Ajouter</button>
-          <span class="pill" id="manualTotal"></span>
-          <button class="btn btn-ghost" id="manualExportBtn">⬇️ Export CSV</button>
-          <button class="btn btn-ghost" id="manualClearBtn">🗑️ Vider (local)</button>
+        <div class="action-buttons">
+          <button class="btn btn-secondary" id="manualAddBtn">➕ Ajouter / Mettre à jour</button>
+          <button class="btn btn-secondary" id="manualExportBtn">⬇️ Exporter (JSON)</button>
+          <button class="btn btn-secondary" id="manualImportBtn">⬆️ Importer (JSON)</button>
+          <input type="file" id="manualImportInput" accept="application/json" style="display:none;" />
+          <span class="pill" id="manualInfo"></span>
         </div>
         <div class="table-wrapper" style="margin-top:12px">
           <table id="manualTable"></table>
+        </div>
+
+        <div class="sync-section">
+          <h3>☁️ Synchronisation multi-postes (GitHub Gist privé)</h3>
+          <p class="note">Crée un token GitHub (scope <code>gist</code>) puis un Gist privé. Laisse l’ID vide et clique <strong>Push</strong> pour créer automatiquement le Gist au premier envoi.</p>
+          <div class="sync-grid">
+            <div>
+              <label class="note" for="ghToken">Token GitHub</label>
+              <input type="password" id="ghToken" placeholder="ghp_…" />
+            </div>
+            <div>
+              <label class="note" for="gistId">Gist ID (vide ➜ création au 1er Push)</label>
+              <input type="text" id="gistId" placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" />
+            </div>
+          </div>
+          <div class="action-buttons">
+            <button class="btn btn-primary" id="btnPull">⬇️ Pull (récupérer)</button>
+            <button class="btn btn-primary" id="btnPush">⬆️ Push (envoyer)</button>
+            <button class="btn btn-secondary" id="btnForget">🗑️ Oublier identifiants locaux</button>
+          </div>
+          <p class="note">Sécurité : le token est stocké <strong>uniquement</strong> dans ce navigateur (localStorage). Utilise un Gist <strong>privé</strong> et révoque le token si besoin.</p>
         </div>
       </div>
 
@@ -161,7 +181,6 @@
           <button class="tab-btn" data-tab="non-factures">❌ Actes non facturés</button>
           <button class="tab-btn" data-tab="factures">✅ Actes facturés</button>
           <button class="tab-btn" data-tab="tous">📋 Tous les actes</button>
-          <button class="tab-btn" data-tab="comparaison">🧮 Comparaison quotidienne</button>
         </div>
 
         <div class="tab-content active" id="tab-recap">
@@ -186,11 +205,6 @@
           <div class="table-wrapper"><table id="table-tous"></table></div>
           <button class="export-btn" onclick="exportToExcel('tous')">📥 Exporter tous les actes (Excel)</button>
         </div>
-
-        <div class="tab-content" id="tab-comparaison">
-          <div class="table-wrapper"><table id="table-comparaison"></table></div>
-          <button class="export-btn" id="exportComparaisonBtn">📥 Exporter la comparaison (CSV)</button>
-        </div>
       </div>
     </div>
   </div>
@@ -203,296 +217,367 @@
     let honorairesData = [];
     let reconciledData = [];
 
-    // Saisie manuelle (localStorage)
-    let manualEntries = []; // { date: 'JJ/MM/AAAA', count: number }
-    const LS_KEY = 'manual_actes_entries_v1';
+    // ===== SAISIE MANUELLE par Mois/Année =====
+    // { "YYYY-MM": [{date:"DD/MM/YYYY", count:Number}, ...], ... }
+    const MANUAL_KEY = 'rc_manual_by_month_v1';
+    const AUTH_KEY   = 'rc_sync_cfg_v1'; // { token, gistId }
+    let manualByMonth = {};
 
     // ===== UTILITAIRES =====
-    const normalizeString = (s="") =>
-      s.toString().normalize("NFD").replace(/\p{Diacritic}/gu,"").replace(/[^A-Za-z0-9\s'-]/g," ")
-       .replace(/\s+/g," ").trim().toUpperCase();
-    const normalizeDossier = (d="") => d.toString().replace(/\D/g,"").replace(/^0+/,"");
-    const parseFrenchNumber = (val) => {
-      if (val===null||val===undefined) return 0;
-      if (typeof val==="number") return val;
-      const s=String(val).replace(/\s/g,"");
-      const n=parseFloat(s.replace(/\./g,"").replace(/,/g,"."));
-      return isNaN(n)?0:n;
-    };
+    const normalizeString = (s="") => s.toString().normalize("NFD").replace(/\p{Diacritic}/gu, "").replace(/[^A-Za-z0-9\s'-]/g, " ").replace(/\s+/g, " ").trim().toUpperCase();
+    const normalizeDossier = (d="") => d.toString().replace(/\D/g, "").replace(/^0+/, "");
+    const parseFrenchNumber = (val) => { if(val===null||val===undefined) return 0; if(typeof val==="number") return val; const s=String(val).replace(/\s/g,""); const n=parseFloat(s.replace(/\./g,"").replace(/,/g,".")); return isNaN(n)?0:n; };
     const toMoney = (n) => (Number(n)||0).toFixed(2)+"€";
-
     function excelDateToJSDate(serial){
-      if (!serial && serial!==0) return null;
+      if(!serial && serial!==0) return null;
       if (serial instanceof Date) return new Date(serial.getFullYear(), serial.getMonth(), serial.getDate());
-      if (typeof serial === 'string'){
+      if (typeof serial === "string") {
         const s = serial.trim();
-        const m1 = s.match(/^(\d{4})-(\d{2})-(\d{2})$/); if (m1) return new Date(+m1[1], +m1[2]-1, +m1[3]);
-        const m2 = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/); if (m2) return new Date(+m2[3], +m2[2]-1, +m2[1]);
-        const d = new Date(s); return isNaN(d)?null:new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        const m1 = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (m1) return new Date(Number(m1[1]), Number(m1[2]) - 1, Number(m1[3]));
+        const m2 = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+        if (m2) return new Date(Number(m2[3]), Number(m2[2]) - 1, Number(m2[1]));
+        const d = new Date(s);
+        return isNaN(d) ? null : new Date(d.getFullYear(), d.getMonth(), d.getDate());
       }
-      const utcDays = Math.floor(serial-25569);
-      const utcValue = utcDays*86400;
-      const dateInfo = new Date(utcValue*1000);
+      const utcDays = Math.floor(serial - 25569);
+      const utcValue = utcDays * 86400;
+      const dateInfo = new Date(utcValue * 1000);
       return new Date(dateInfo.getFullYear(), dateInfo.getMonth(), dateInfo.getDate());
     }
     function formatDate(date){
-      if(!date) return '';
-      const d=new Date(date); if(isNaN(d)) return '';
-      const day=String(d.getDate()).padStart(2,'0');
-      const month=String(d.getMonth()+1).padStart(2,'0');
-      const year=d.getFullYear();
+      if (!date) return "";
+      const d = new Date(date);
+      if (isNaN(d)) return "";
+      const day = String(d.getDate()).padStart(2, "0");
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const year = d.getFullYear();
       return `${day}/${month}/${year}`;
     }
-    const normalizeDateString = (s) => {
-      if(!s) return '';
-      const str=String(s).trim();
-      if(/^\d{2}\/\d{2}\/\d{4}$/.test(str)) return str;
-      const m1=str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-      if(m1) return `${m1[3]}/${m1[2]}/${m1[1]}`;
-      const d=new Date(str);
-      return isNaN(d)?str:formatDate(d);
-    };
-    const todayInputValue = () => {
-      const d=new Date();
-      const mm=String(d.getMonth()+1).padStart(2,'0');
-      const dd=String(d.getDate()).padStart(2,'0');
-      return `${d.getFullYear()}-${mm}-${dd}`;
-    };
+    const monthKeyOf = (dateStr) => { const [dd,mm,yy] = dateStr.split('/'); return `${yy}-${mm}`; };
+    const monthNameOfKey = (k) => { const [yy,mm]=k.split('-'); const names=["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"]; return `${names[+mm-1]} ${yy}`; };
+    const todayInputValue = ()=>{ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
 
-    // ===== GESTION DES FICHIERS =====
-    document.getElementById('actesFile').addEventListener('change', (e)=>{
-      const newFiles=[...e.target.files];
-      newFiles.forEach(f=>{
-        if(!actesFiles.find(x=>x.name===f.name&&x.size===f.size)) actesFiles.push(f);
-      });
-      updateFilesList('actes'); checkFilesReady(); e.target.value='';
-    });
-    document.getElementById('honorairesFiles').addEventListener('change', (e)=>{
-      const newFiles=[...e.target.files];
-      newFiles.forEach(f=>{
-        if(!honorairesFiles.find(x=>x.name===f.name&&x.size===f.size)) honorairesFiles.push(f);
-      });
-      updateFilesList('honoraires'); checkFilesReady(); e.target.value='';
-    });
+    // ===== PERSISTENCE LOCALE =====
+    function loadManualLocal(){ try{ const raw=localStorage.getItem(MANUAL_KEY); manualByMonth = raw? JSON.parse(raw): {}; } catch{ manualByMonth = {}; } }
+    function saveManualLocal(){ localStorage.setItem(MANUAL_KEY, JSON.stringify(manualByMonth)); }
 
-    function updateFilesList(type){
-      const files = (type==='actes')? actesFiles : honorairesFiles;
-      const el = document.getElementById(type==='actes'?'actesFilesList':'honorairesFilesList');
-      el.innerHTML = files.map((file,idx)=>`
-        <div class="file-item">
-          <div class="file-info">
-            <div>${type==='actes'?'📊':'💰'}</div>
-            <div>
-              <div class="file-name">${file.name}</div>
-              <div class="file-size">${formatFileSize(file.size)}</div>
-            </div>
-          </div>
-          <button class="remove-file-btn" onclick="removeFile('${type}',${idx})">✕ Supprimer</button>
-        </div>`).join('');
-    }
-    function removeFile(type,index){
-      if(type==='actes') actesFiles.splice(index,1); else honorairesFiles.splice(index,1);
-      updateFilesList(type); checkFilesReady();
-    }
-    function formatFileSize(b){
-      if(b===0) return '0 Bytes';
-      const k=1024; const s=['Bytes','KB','MB','GB'];
-      const i=Math.floor(Math.log(b)/Math.log(k));
-      return Math.round((b/Math.pow(k,i))*100)/100 + ' ' + s[i];
-    }
-    function checkFilesReady(){
-      document.getElementById('analyzeBtn').disabled = !(actesFiles.length>0 && honorairesFiles.length>0);
-    }
+    // ===== UI SAISIE MANUELLE =====
+    function refreshManualUI(){
+      const months = Object.keys(manualByMonth).sort();
+      const total = months.reduce((s,k)=> s + manualByMonth[k].reduce((x,e)=>x + Number(e.count||0),0), 0);
+      document.getElementById('manualInfo').textContent = `${months.length} mois sauvegardés • ${total} actes saisis`;
 
-    document.getElementById('analyzeBtn').addEventListener('click', analyzeFiles);
-    document.getElementById('resetBtn').addEventListener('click', ()=>{
-      actesFiles=[]; honorairesFiles=[]; actesData=[]; honorairesData=[]; reconciledData=[];
-      updateFilesList('actes'); updateFilesList('honoraires'); checkFilesReady();
-      document.getElementById('results').classList.remove('show');
-    });
+      const dateInput = document.getElementById('manualDate').value || todayInputValue();
+      const [y,m,d] = dateInput.split('-');
+      const fr = `${d}/${m}/${y}`;
+      const key = monthKeyOf(fr);
+      renderManualTable(key);
 
-    document.querySelectorAll('.tab-btn').forEach(btn=>{
-      btn.addEventListener('click', function(){
-        const tab=this.dataset.tab;
-        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
-        this.classList.add('active');
-        document.getElementById(`tab-${tab}`).classList.add('active');
-      });
-    });
-
-    // ===== SAISIE MANUELLE (LocalStorage) =====
-    function loadManual(){
-      try{ const raw=localStorage.getItem(LS_KEY); manualEntries = raw? JSON.parse(raw): []; }
-      catch{ manualEntries=[]; }
+      const ex = (manualByMonth[key]||[]).find(e=>e.date===fr);
+      document.getElementById('manualCount').value = ex? ex.count: '';
     }
-    function saveManual(){ localStorage.setItem(LS_KEY, JSON.stringify(manualEntries)); }
-    function refreshManualUI(){ displayManualTable(); updateManualTotal(); displayComparison(); }
-    function addManualEntry(){
+    function renderManualTable(key){
+      const t=document.getElementById('manualTable');
+      const rows=(manualByMonth[key]||[]).slice().sort((a,b)=>{const [da,ma,ya]=a.date.split('/').map(Number); const [db,mb,yb]=b.date.split('/').map(Number); return ya!==yb?ya-yb:ma!==mb?ma-mb:da-db;});
+      if(!rows.length){
+        t.innerHTML='<thead><tr><th>Date</th><th>Nb actes</th><th></th></tr></thead><tbody><tr><td colspan="3" style="text-align:center;color:#666;padding:12px">Aucune saisie ce mois</td></tr></tbody>';
+        return;
+      }
+      let html='<thead><tr><th>Date</th><th>Nb actes</th><th>Action</th></tr></thead><tbody>';
+      for(const e of rows){
+        html+=`<tr><td>${e.date}</td><td>${e.count}</td><td><button class="remove-file-btn" onclick="deleteManual('${key}','${e.date}')">Supprimer</button></td></tr>`;
+      }
+      const tot = rows.reduce((s,e)=>s+Number(e.count||0),0);
+      html+=`<tr style="background:#f8f9fa;font-weight:bold"><td>Total ${monthNameOfKey(key)}</td><td>${tot}</td><td></td></tr>`;
+      html+='</tbody>';
+      t.innerHTML=html;
+    }
+    function addOrUpdateManual(){
       const dateInput=document.getElementById('manualDate').value;
       const count=Number(document.getElementById('manualCount').value||0);
       if(!dateInput) return alert('Choisis une date.');
       if(count<0) return alert('Le nombre doit être ≥ 0');
+
       const [y,m,d]=dateInput.split('-');
       const fr=`${d}/${m}/${y}`;
-      const idx=manualEntries.findIndex(e=>e.date===fr);
-      if(idx>-1){ manualEntries[idx].count = count; }
-      else{ manualEntries.push({date:fr, count}); }
-      manualEntries.sort((a,b)=>{
-        const [da,ma,ya]=a.date.split('/').map(Number);
-        const [db,mb,yb]=b.date.split('/').map(Number);
-        return ya!==yb? ya-yb : ma!==mb? ma-mb : da-db;
-      });
-      saveManual(); refreshManualUI();
-    }
-    function deleteManual(date){
-      manualEntries = manualEntries.filter(e=>e.date!==date);
-      saveManual(); refreshManualUI();
-    }
-    function updateManualTotal(){
-      const tot=manualEntries.reduce((s,e)=>s+Number(e.count||0),0);
-      document.getElementById('manualTotal').textContent = `Total saisi: ${tot}`;
-    }
-    function displayManualTable(){
-      const t=document.getElementById('manualTable');
-      if(!manualEntries.length){
-        t.innerHTML='<thead><tr><th>Date</th><th>Nb actes</th><th></th></tr></thead><tbody><tr><td colspan="3" style="text-align:center;color:#666;padding:12px">Aucune saisie</td></tr></tbody>';
-        return;
-      }
-      let html='<thead><tr><th>Date</th><th>Nb actes</th><th>Action</th></tr></thead><tbody>';
-      for(const e of manualEntries){
-        html+=`<tr><td>${e.date}</td><td>${e.count}</td><td><button class="remove-file-btn" onclick="deleteManual('${e.date}')">Supprimer</button></td></tr>`;
-      }
-      html+='</tbody>'; t.innerHTML=html;
-    }
-    function exportManualCSV(){
-      if(!manualEntries.length) return alert('Aucune saisie à exporter.');
-      const rows=['date;nb_actes', ...manualEntries.map(e=>`${e.date};${e.count}`)];
-      const blob=new Blob([rows.join('\n')], {type:'text/csv;charset=utf-8;'});
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement('a'); a.href=url; a.download='saisies_manuelles.csv'; a.click(); URL.revokeObjectURL(url);
-    }
-    function clearManual(){
-      if(!confirm('Supprimer toutes les saisies locales ?')) return;
-      manualEntries=[]; saveManual(); refreshManualUI();
-    }
-    // Init champs + boutons
-    document.getElementById('manualDate').value = todayInputValue();
-    document.getElementById('manualAddBtn').addEventListener('click', addManualEntry);
-    document.getElementById('manualExportBtn').addEventListener('click', exportManualCSV);
-    document.getElementById('manualClearBtn').addEventListener('click', clearManual);
-    loadManual(); refreshManualUI();
+      const key=monthKeyOf(fr);
 
-    // ===== LECTURE FICHIERS =====
-    async function analyzeFiles(){
-      document.getElementById('loading').classList.add('show');
-      document.getElementById('results').classList.remove('show');
+      if(!manualByMonth[key]) manualByMonth[key]=[];
+      const idx=manualByMonth[key].findIndex(e=>e.date===fr);
+      if(idx>-1) manualByMonth[key][idx].count=count;
+      else manualByMonth[key].push({date:fr,count});
+
+      saveManualLocal();
+      refreshManualUI();
+    }
+    function deleteManual(key,date){
+      manualByMonth[key] = (manualByMonth[key]||[]).filter(e=>e.date!==date);
+      if(!manualByMonth[key].length) delete manualByMonth[key];
+      saveManualLocal();
+      refreshManualUI();
+    }
+    window.deleteManual = deleteManual;
+
+    function exportManualJSON(){
+      const blob=new Blob([JSON.stringify(manualByMonth,null,2)],{type:'application/json'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a'); a.href=url; a.download='saisies_manuelles_par_mois.json'; a.click();
+      URL.revokeObjectURL(url);
+    }
+    function importManualJSON(file){
+      const r=new FileReader();
+      r.onload=()=>{
+        try{
+          const obj=JSON.parse(r.result);
+          if(Object.prototype.toString.call(obj)==='[object Object]'){
+            manualByMonth=obj; saveManualLocal(); refreshManualUI(); alert('Import JSON terminé ✅');
+          } else { alert('Format JSON invalide'); }
+        }catch{ alert('JSON invalide'); }
+      };
+      r.readAsText(file);
+    }
+
+    // ===== SYNC GITHUB GIST =====
+    function loadAuth(){
       try{
-        actesData=[];
-        for(const file of actesFiles){ const data=await readExcelFile(file); actesData=actesData.concat(data); }
-        honorairesData=[];
-        for(const file of honorairesFiles){ const data=await readCSVFile(file); honorairesData=honorairesData.concat(data); }
+        const cfg=JSON.parse(localStorage.getItem(AUTH_KEY)||'{}');
+        document.getElementById('ghToken').value = cfg.token||'';
+        document.getElementById('gistId').value = cfg.gistId||'';
+      }catch{}
+    }
+    function saveAuth(){
+      const token=document.getElementById('ghToken').value.trim();
+      const gistId=document.getElementById('gistId').value.trim();
+      localStorage.setItem(AUTH_KEY, JSON.stringify({token,gistId}));
+    }
+    async function gistRequest(path, method='GET', body){
+      const {token} = JSON.parse(localStorage.getItem(AUTH_KEY)||'{}');
+      if(!token) throw new Error('Renseigne ton token GitHub.');
+      const res = await fetch(`https://api.github.com${path}`, {
+        method,
+        headers:{ 'Authorization': `Bearer ${token}`, 'Accept':'application/vnd.github+json' },
+        body: body? JSON.stringify(body): undefined
+      });
+      if(!res.ok){ const t=await res.text(); throw new Error(`GitHub ${res.status}: ${t}`); }
+      return res.json();
+    }
+    async function pullGist(){
+      try{
+        saveAuth();
+        const cfg=JSON.parse(localStorage.getItem(AUTH_KEY)||'{}');
+        if(!cfg.gistId) return alert("Indique l'ID du Gist à récupérer.");
+        const data = await gistRequest(`/gists/${cfg.gistId}`);
+        const file = data.files?.['reconciliateur_manual_by_month.json'];
+        if(!file) return alert('Fichier introuvable dans le Gist.');
+        const content = await (await fetch(file.raw_url)).text();
+        const obj = JSON.parse(content);
+        if(Object.prototype.toString.call(obj)==='[object Object]'){
+          manualByMonth=obj; saveManualLocal(); refreshManualUI(); alert('Pull OK ✅');
+        } else { alert('Format du fichier invalide'); }
+      }catch(e){ alert(e.message); }
+    }
+    async function pushGist(){
+      try{
+        saveAuth();
+        const cfg=JSON.parse(localStorage.getItem(AUTH_KEY)||'{}');
+        const files={ 'reconciliateur_manual_by_month.json': { content: JSON.stringify(manualByMonth,null,2) } };
+        if(cfg.gistId){
+          await gistRequest(`/gists/${cfg.gistId}`, 'PATCH', { files });
+          alert('Push OK ✅');
+        } else {
+          const created = await gistRequest('/gists','POST',{ description:'Réconciliateur — données manuelles par mois', public:false, files });
+          document.getElementById('gistId').value = created.id; saveAuth();
+          alert('Gist créé et Push OK ✅\nGist ID: '+created.id);
+        }
+      }catch(e){ alert(e.message); }
+    }
+    function forgetAuth(){
+      localStorage.removeItem(AUTH_KEY);
+      document.getElementById('ghToken').value='';
+      document.getElementById('gistId').value='';
+      alert('Identifiants supprimés sur ce navigateur.');
+    }
+
+    // ===== GESTION FICHIERS =====
+    document.getElementById("actesFile").addEventListener("change", (e) => {
+      const newFiles = Array.from(e.target.files);
+      newFiles.forEach((file) => {
+        if (!actesFiles.find((f) => f.name === file.name && f.size === file.size)) {
+          actesFiles.push(file);
+        }
+      });
+      updateFilesList("actes");
+      checkFilesReady();
+      e.target.value = "";
+    });
+    document.getElementById("honorairesFiles").addEventListener("change", (e) => {
+      const newFiles = Array.from(e.target.files);
+      newFiles.forEach((file) => {
+        if (!honorairesFiles.find((f) => f.name === file.name && f.size === file.size)) {
+          honorairesFiles.push(file);
+        }
+      });
+      updateFilesList("honoraires");
+      checkFilesReady();
+      e.target.value = "";
+    });
+    function updateFilesList(type) {
+      const files = type === "actes" ? actesFiles : honorairesFiles;
+      const listElement = document.getElementById(type === "actes" ? "actesFilesList" : "honorairesFilesList");
+      listElement.innerHTML = files
+        .map((file, index) => `
+          <div class="file-item">
+            <div class="file-info">
+              <div>${type === "actes" ? "📊" : "💰"}</div>
+              <div>
+                <div class="file-name">${file.name}</div>
+                <div class="file-size">${formatFileSize(file.size)}</div>
+              </div>
+            </div>
+            <button class="remove-file-btn" onclick="removeFile('${type}', ${index})">✕ Supprimer</button>
+          </div>
+        `)
+        .join("");
+    }
+    function removeFile(type, index) {
+      if (type === "actes") actesFiles.splice(index, 1);
+      else honorairesFiles.splice(index, 1);
+      updateFilesList(type);
+      checkFilesReady();
+    }
+    function formatFileSize(bytes) {
+      if (bytes === 0) return "0 Bytes";
+      const k = 1024;
+      const sizes = ["Bytes", "KB", "MB", "GB"];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
+    }
+    function checkFilesReady() {
+      document.getElementById("analyzeBtn").disabled = !(actesFiles.length > 0 && honorairesFiles.length > 0);
+    }
+
+    document.getElementById("analyzeBtn").addEventListener("click", analyzeFiles);
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      actesFiles = []; honorairesFiles = []; actesData = []; honorairesData = []; reconciledData = [];
+      updateFilesList("actes"); updateFilesList("honoraires"); checkFilesReady();
+      document.getElementById("results").classList.remove("show");
+    });
+
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.addEventListener("click", function(){
+        const tab = this.dataset.tab;
+        document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+        document.querySelectorAll(".tab-content").forEach((c) => c.classList.remove("active"));
+        this.classList.add("active");
+        document.getElementById(`tab-${tab}`).classList.add("active");
+      });
+    });
+
+    // ===== LECTURE FICHIERS / ANALYSE =====
+    async function analyzeFiles(){
+      document.getElementById("loading").classList.add("show");
+      document.getElementById("results").classList.remove("show");
+      try {
+        actesData = [];
+        for (const file of actesFiles){ const data = await readExcelFile(file); actesData = actesData.concat(data); }
+        honorairesData = [];
+        for (const file of honorairesFiles){ const data = await readCSVFile(file); honorairesData = honorairesData.concat(data); }
         reconcileData();
         displayResults();
-        document.getElementById('loading').classList.remove('show');
-        document.getElementById('results').classList.add('show');
-      }catch(error){
-        console.error(error);
-        alert('Erreur lors de l\'analyse des fichiers: ' + error.message);
-        document.getElementById('loading').classList.remove('show');
+        document.getElementById("loading").classList.remove("show");
+        document.getElementById("results").classList.add("show");
+      } catch(err){
+        console.error(err);
+        alert("Erreur lors de l'analyse des fichiers : " + err.message);
+        document.getElementById("loading").classList.remove("show");
       }
     }
-
     function readExcelFile(file){
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = function(e){
+        reader.onload = (e) => {
           try{
             const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, {type: 'array'});
+            const workbook = XLSX.read(data, { type:"array" });
             const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-            const jsonData = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
-
-            // repère la ligne des en-têtes (contient “Numéro de dossier”)
+            const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header:1 });
             let headerRow = -1;
-            for (let i = 0; i < jsonData.length; i++){
-              if (jsonData[i].some(cell => String(cell||'').toLowerCase().includes('numéro de dossier'))){
-                headerRow = i; break;
-              }
+            for(let i=0;i<jsonData.length;i++){
+              if (jsonData[i].some((cell)=>String(cell||"").toLowerCase().includes("numéro de dossier"))) { headerRow = i; break; }
             }
-            if (headerRow === -1) return reject(new Error('En-tête non trouvé dans le fichier Excel'));
-
+            if (headerRow === -1) return reject(new Error("En-tête non trouvé dans le fichier Excel"));
             const headers = jsonData[headerRow];
-            const dataRows = jsonData.slice(headerRow + 1);
-
-            const result = dataRows.map(row => {
+            const rows = jsonData.slice(headerRow+1);
+            const arr = rows.map((row)=>{
               const obj = {};
-              headers.forEach((header, index) => { obj[header] = row[index]; });
+              headers.forEach((h,idx)=>{ obj[h] = row[idx]; });
               return obj;
-            }).filter(row => row['Nom'] && row['Numéro de dossier']);
-
-            resolve(result);
+            }).filter((r)=>r["Nom"] && r["Numéro de dossier"]);
+            resolve(arr);
           }catch(err){ reject(err); }
         };
         reader.onerror = reject;
         reader.readAsArrayBuffer(file);
       });
     }
-
     function readCSVFile(file){
       return new Promise((resolve, reject) => {
-        Papa.parse(file, {
-          encoding: 'ISO-8859-1',
-          delimiter: ';',
-          skipEmptyLines: true,
-          complete: function(results){
+        Papa.parse(file,{
+          encoding:"ISO-8859-1",
+          delimiter:";",
+          skipEmptyLines:true,
+          complete: (results)=>{
             try{
-              if (results.data.length < 7) return reject(new Error('Le fichier CSV ne contient pas assez de lignes'));
-
-              const headers = ['Praticien','Dossier','Patient','Libellé','Transfert','Date Acte','Serv.','Coeff.','Pertes','Mt Hors Dépass.','Dépass.','Total','Vide'];
+              if (results.data.length < 7) return reject(new Error("Le fichier CSV ne contient pas assez de lignes"));
+              const headers = ["Praticien","Dossier","Patient","Libellé","Transfert","Date Acte","Serv.","Coeff.","Pertes","Mt Hors Dépass.","Dépass.","Total","Vide"];
               const dataRows = results.data.slice(6);
-
-              const result = dataRows.map(row => {
+              const cleaned = dataRows.map((row)=>{
                 if (!row || row.length < 6) return null;
                 const obj = {};
-                headers.forEach((header, index) => { obj[header] = row[index] ? row[index].replace(/"/g, '').trim() : ''; });
-                obj['Date Acte'] = normalizeDateString(obj['Date Acte']);
-                obj['Total'] = parseFrenchNumber(obj['Total']);
-                obj['Dossier'] = normalizeDossier(obj['Dossier']);
-                obj['Patient_norm'] = normalizeString(obj['Patient']);
+                headers.forEach((h,i)=>{ obj[h] = (row[i] ? row[i].replace(/\"/g,"").trim() : ""); });
+                obj["Date Acte"] = normalizeDateString(obj["Date Acte"]);
+                obj["Total"] = parseFrenchNumber(obj["Total"]);
+                obj["Dossier"] = normalizeDossier(obj["Dossier"]);
+                obj["Patient_norm"] = normalizeString(obj["Patient"]);
                 return obj;
-              }).filter(row => row && row['Dossier'] && row['Date Acte']);
-
-              resolve(result);
+              }).filter((r)=>r && r["Dossier"] && r["Date Acte"]);
+              resolve(cleaned);
             }catch(err){ reject(err); }
           },
           error: reject
         });
       });
     }
+    function normalizeDateString(s){
+      if (!s) return "";
+      const str = String(s).trim();
+      if (/^\d{2}\/\d{2}\/\d{4}$/.test(str)) return str;
+      const m1 = str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (m1) return `${m1[3]}/${m1[2]}/${m1[1]}`;
+      const d = new Date(str);
+      return isNaN(d) ? str : formatDate(d);
+    }
 
     // ===== RÉCONCILIATION =====
     function reconcileData(){
       const honIndex = new Map();
       for (const hon of honorairesData){
-        const key = `${hon['Dossier']}|${hon['Patient_norm']}|${hon['Date Acte']}`;
+        const key = `${hon["Dossier"]}|${hon["Patient_norm"]}|${hon["Date Acte"]}`;
         if (!honIndex.has(key)) honIndex.set(key, hon);
       }
-
-      reconciledData = actesData.map(acte => {
-        const dossier = normalizeDossier(acte['Numéro de dossier']||acte['Numéro de Dossier']||'');
-        const nom = normalizeString(acte['Nom'] || '');
-        const prenom = normalizeString(acte['Prénom'] || acte['Prenom'] || '');
-        const nomComplet = `${nom} ${prenom}`.trim();
+      reconciledData = actesData.map((acte)=>{
+        const dossier = normalizeDossier(acte["Numéro de dossier"] || acte["Numéro de Dossier"] || "");
+        const nom = normalizeString(acte["Nom"] || "");
+        const prenom = normalizeString(acte["Prénom"] || acte["Prenom"] || "");
+        const nomComplet = (nom + " " + prenom).trim();
         const patientNorm = normalizeString(nomComplet);
-        const dateActe = excelDateToJSDate(acte['Date de début'] || acte['Date']);
-        const dateFormatted = formatDate(dateActe);
-        const prestation = acte['Prestation'] || acte['Acte'] || '';
-        const montant = parseFrenchNumber(acte['Prix_Unitaire_Coefficient_Quantité'] || acte['Montant'] || acte['Tarif']);
-
+        const dActe = excelDateToJSDate(acte["Date de début"] || acte["Date"]);
+        const dateFormatted = formatDate(dActe);
+        const prestation = acte["Prestation"] || acte["Acte"] || "";
+        const montant = parseFrenchNumber(acte["Prix_Unitaire_Coefficient_Quantité"] || acte["Montant"] || acte["Tarif"]);
         const key = `${dossier}|${patientNorm}|${dateFormatted}`;
         const match = honIndex.get(key);
-
         return {
           ...acte,
           _DOSSIER_NORM: dossier,
@@ -500,9 +585,9 @@
           Patient_norm: patientNorm,
           Date_Formatee: dateFormatted,
           Prestation: prestation,
-          Montant_num: Number(montant)||0,
-          Facturé: match ? 'Oui' : 'Non',
-          Détails_Facture: match ? (match['Libellé'] || 'N/A') : ''
+          Montant_num: Number(montant) || 0,
+          Facturé: match ? "Oui" : "Non",
+          Détails_Facture: match ? (match["Libellé"] || "N/A") : "",
         };
       });
     }
@@ -510,88 +595,78 @@
     // ===== AFFICHAGE =====
     function displayResults(){
       const totalActes = reconciledData.length;
-      const actesFactures = reconciledData.filter(a => a['Facturé'] === 'Oui').length;
+      const actesFactures = reconciledData.filter((a)=>a["Facturé"] === "Oui").length;
       const actesNonFactures = totalActes - actesFactures;
-      const montantNonFacture = reconciledData.filter(a => a['Facturé'] === 'Non')
-        .reduce((sum, a) => sum + (a.Montant_num||0), 0);
+      const montantNonFacture = reconciledData.filter((a)=>a["Facturé"] === "Non").reduce((s,a)=> s + (a.Montant_num||0), 0);
 
-      document.getElementById('stats').innerHTML = `
-        <div class="stat-card">
-          <div class="stat-value">${totalActes}</div><div class="stat-label">Total actes</div>
-        </div>
-        <div class="stat-card success">
-          <div class="stat-value">${actesFactures}</div><div class="stat-label">Actes facturés</div>
-        </div>
-        <div class="stat-card warning">
-          <div class="stat-value">${actesNonFactures}</div><div class="stat-label">Actes non facturés</div>
-        </div>
-        <div class="stat-card warning">
-          <div class="stat-value">${toMoney(montantNonFacture)}</div><div class="stat-label">Montant non facturé</div>
-        </div>`;
-
-      displayTable('non-factures', reconciledData.filter(a => a['Facturé'] === 'Non'));
-      displayTable('factures', reconciledData.filter(a => a['Facturé'] === 'Oui'));
-      displayTable('tous', reconciledData);
+      document.getElementById("stats").innerHTML = `
+        <div class="stat-card"><div class="stat-value">${totalActes}</div><div class="stat-label">Total actes</div></div>
+        <div class="stat-card success"><div class="stat-value">${actesFactures}</div><div class="stat-label">Actes facturés</div></div>
+        <div class="stat-card warning"><div class="stat-value">${actesNonFactures}</div><div class="stat-label">Actes non facturés</div></div>
+        <div class="stat-card warning"><div class="stat-value">${toMoney(montantNonFacture)}</div><div class="stat-label">Montant non facturé</div></div>
+      `;
+      displayTable("non-factures", reconciledData.filter((a)=>a["Facturé"] === "Non"));
+      displayTable("factures", reconciledData.filter((a)=>a["Facturé"] === "Oui"));
+      displayTable("tous", reconciledData);
       displayMonthlySummary();
-      displayComparison();
     }
-
     function displayTable(type, data){
       const table = document.getElementById(`table-${type}`);
-      if (data.length === 0){
-        table.innerHTML = '<p style="padding:20px;text-align:center;color:#666;">Aucune donnée à afficher</p>';
+      if (!data.length){
+        table.innerHTML = '<p style="padding:20px;text-align:center;color:#666">Aucune donnée à afficher</p>';
         return;
       }
-      let html = '<thead><tr><th>Date</th><th>Nom Patient</th><th>N° Dossier</th><th>Prestation</th><th>Montant</th><th>Statut</th><th>Détails</th></tr></thead><tbody>';
-      data.forEach(row => {
-        const statusClass = row['Facturé'] === 'Oui' ? 'status-factured' : 'status-not-factured';
-        const statusText = row['Facturé'] === 'Oui' ? '✓ Facturé' : '✗ Non facturé';
-        html += `<tr>
-          <td>${row['Date_Formatee']||''}</td>
-          <td>${row['Nom_Complet']||''}</td>
-          <td>${row['_DOSSIER_NORM']||''}</td>
-          <td>${row['Prestation']||''}</td>
-          <td>${toMoney(row['Montant_num'])}</td>
-          <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-          <td>${row['Détails_Facture']||''}</td>
-        </tr>`;
-      });
+      let html = '<thead><tr>' +
+        '<th>Date</th><th>Nom Patient</th><th>N° Dossier</th><th>Prestation</th><th>Montant</th><th>Statut</th><th>Détails</th>' +
+        '</tr></thead><tbody>';
+      for (const row of data){
+        const statusClass = row["Facturé"] === "Oui" ? "status-factured" : "status-not-factured";
+        const statusText = row["Facturé"] === "Oui" ? "✓ Facturé" : "✗ Non facturé";
+        html += '<tr>' +
+          `<td>${row["Date_Formatee"] || ""}</td>`+
+          `<td>${row["Nom_Complet"] || ""}</td>`+
+          `<td>${row["_DOSSIER_NORM"] || ""}</td>`+
+          `<td>${row["Prestation"] || ""}</td>`+
+          `<td>${toMoney(row["Montant_num"])}</td>`+
+          `<td><span class="status-badge ${statusClass}">${statusText}</span></td>`+
+          `<td>${row["Détails_Facture"] || ""}</td>`+
+        '</tr>';
+      }
       html += '</tbody>';
       table.innerHTML = html;
     }
 
     // ===== RÉCAP MENSUEL =====
     function displayMonthlySummary(){
-      const monthly = {};
-      reconciledData.forEach(a => {
-        const d = a['Date_Formatee'];
-        if(!d) return;
-        const [jj,mm,yy] = d.split('/');
-        if(!(jj&&mm&&yy)) return;
-        const key = `${mm}/${yy}`;
-        const name = getMonthName(+mm, +yy);
-        if(!monthly[key]) monthly[key] = {
-          name,total:0,factures:0,nonFactures:0,
-          montantTotal:0,montantFacture:0,montantNonFacture:0
-        };
-        const m = a.Montant_num||0;
-        monthly[key].total++;
-        monthly[key].montantTotal+=m;
-        if(a['Facturé']==='Oui'){ monthly[key].factures++; monthly[key].montantFacture+=m; }
-        else{ monthly[key].nonFactures++; monthly[key].montantNonFacture+=m; }
+      const monthlyData = {};
+      for (const acte of reconciledData){
+        const date = acte["Date_Formatee"]; if (!date) continue;
+        const [jj, mm, yyyy] = date.split("/");
+        if (!jj || !mm || !yyyy) continue;
+        const key = `${mm}/${yyyy}`;
+        const name = getMonthName(Number(mm), Number(yyyy));
+        if (!monthlyData[key]){
+          monthlyData[key] = {
+            name,total:0,factures:0,nonFactures:0,
+            montantTotal:0,montantFacture:0,montantNonFacture:0,
+          };
+        }
+        const montant = acte.Montant_num || 0;
+        monthlyData[key].total++;
+        monthlyData[key].montantTotal += montant;
+        if (acte["Facturé"] === "Oui"){ monthlyData[key].factures++; monthlyData[key].montantFacture += montant; }
+        else { monthlyData[key].nonFactures++; monthlyData[key].montantNonFacture += montant; }
+      }
+      const sorted = Object.keys(monthlyData).sort((a,b)=>{
+        const [ma,ya] = a.split('/').map(Number);
+        const [mb,yb] = b.split('/').map(Number);
+        return ya !== yb ? ya - yb : ma - mb;
       });
-
-      const sorted = Object.keys(monthly).sort((a,b)=>{
-        const [ma,ya]=a.split('/').map(Number);
-        const [mb,yb]=b.split('/').map(Number);
-        return ya!==yb? ya-yb : ma-mb;
-      });
-
-      let summary = '<div class="monthly-summary-grid">';
-      sorted.forEach(k=>{
-        const d=monthly[k];
-        const taux=d.total? (d.factures/d.total*100).toFixed(1):0;
-        summary += `
+      let summaryHTML = '<div class="monthly-summary-grid">';
+      for (const k of sorted){
+        const d = monthlyData[k];
+        const taux = d.total ? (d.factures / d.total * 100).toFixed(1) : 0;
+        summaryHTML += `
           <div class="month-card">
             <h3>📅 ${d.name}</h3>
             <div class="month-stats">
@@ -603,161 +678,66 @@
               <div class="month-stat-row"><span class="month-stat-label">Montant non facturé</span><span class="month-stat-value warning">${toMoney(d.montantNonFacture)}</span></div>
             </div>
           </div>`;
-      });
-      summary += '</div>';
-      if(sorted.length>1){
-        summary += `<div class="comparison-section">
-          <h3>📊 Comparaison des mois</h3>
-          <p class="note">Vue d'ensemble de l'évolution mensuelle</p>
-        </div>`;
       }
-      document.getElementById('monthly-summary').innerHTML = summary;
-
-      displayMonthlyTable(monthly, sorted);
+      summaryHTML += '</div>';
+      if (sorted.length > 1){
+        summaryHTML += `<div class="comparison-section"><h3>📊 Comparaison des mois</h3><p class="note">Vue d'ensemble de l'évolution mensuelle</p></div>`;
+      }
+      document.getElementById("monthly-summary").innerHTML = summaryHTML;
+      displayMonthlyTable(monthlyData, sorted);
     }
-
     function getMonthName(month, year){
-      const monthNames = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
-      return `${monthNames[month - 1]} ${year}`;
+      const months = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
+      return `${months[month-1]} ${year}`;
     }
-
-    function displayMonthlyTable(monthly, sorted){
-      const table = document.getElementById('table-monthly');
-      if(!sorted.length){
-        table.innerHTML = '<p style="padding:20px;text-align:center;color:#666;">Aucune donnée mensuelle disponible</p>';
+    function displayMonthlyTable(monthlyData, sorted){
+      const table = document.getElementById("table-monthly");
+      if (!sorted.length){
+        table.innerHTML = '<p style="padding:20px;text-align:center;color:#666">Aucune donnée mensuelle disponible</p>';
         return;
       }
-
-      let html = '<thead><tr><th>Mois</th><th>Total Actes</th><th>Facturés</th><th>Non Facturés</th><th>Taux Facturation</th><th>Montant Total</th><th>Montant Facturé</th><th>Montant Non Facturé</th></tr></thead><tbody>';
-
-      const totalGeneral = { total:0, factures:0, nonFactures:0, montantTotal:0, montantFacture:0, montantNonFacture:0 };
-
-      sorted.forEach(k=>{
-        const d=monthly[k];
-        const taux=d.total? (d.factures/d.total*100).toFixed(1):0;
-        html += `<tr>
-          <td><strong>${d.name}</strong></td>
-          <td>${d.total}</td>
-          <td><span style="color:#28a745;font-weight:600;">${d.factures}</span></td>
-          <td><span style="color:#e74c3c;font-weight:600;">${d.nonFactures}</span></td>
-          <td><strong>${taux}%</strong></td>
-          <td>${toMoney(d.montantTotal)}</td>
-          <td style="color:#28a745;">${toMoney(d.montantFacture)}</td>
-          <td style="color:#e74c3c;">${toMoney(d.montantNonFacture)}</td>
-        </tr>`;
-        totalGeneral.total += d.total;
-        totalGeneral.factures += d.factures;
-        totalGeneral.nonFactures += d.nonFactures;
-        totalGeneral.montantTotal += d.montantTotal;
-        totalGeneral.montantFacture += d.montantFacture;
-        totalGeneral.montantNonFacture += d.montantNonFacture;
-      });
-
-      if(sorted.length>1){
-        const tauxGlobal = totalGeneral.total ? (totalGeneral.factures/totalGeneral.total*100).toFixed(1) : 0;
-        html += `<tr style="background:#f8f9fa;font-weight:bold;border-top:2px solid #667eea;">
-          <td><strong>TOTAL GÉNÉRAL</strong></td>
-          <td>${totalGeneral.total}</td>
-          <td style="color:#28a745;">${totalGeneral.factures}</td>
-          <td style="color:#e74c3c;">${totalGeneral.nonFactures}</td>
-          <td><strong>${tauxGlobal}%</strong></td>
-          <td>${toMoney(totalGeneral.montantTotal)}</td>
-          <td style="color:#28a745;">${toMoney(totalGeneral.montantFacture)}</td>
-          <td style="color:#e74c3c;">${toMoney(totalGeneral.montantNonFacture)}</td>
-        </tr>`;
+      let html = '<thead><tr>'+
+        '<th>Mois</th><th>Total Actes</th><th>Facturés</th><th>Non Facturés</th><th>Taux Facturation</th><th>Montant Total</th><th>Montant Facturé</th><th>Montant Non Facturé</th>'+
+        '</tr></thead><tbody>';
+      const tot = { total:0, factures:0, nonFactures:0, montantTotal:0, montantFacture:0, montantNonFacture:0 };
+      for (const k of sorted){
+        const d = monthlyData[k];
+        const taux = d.total ? (d.factures / d.total * 100).toFixed(1) : 0;
+        html += '<tr>'+
+          `<td><strong>${d.name}</strong></td>`+
+          `<td>${d.total}</td>`+
+          `<td style="color:#28a745;font-weight:600">${d.factures}</td>`+
+          `<td style="color:#e74c3c;font-weight:600">${d.nonFactures}</td>`+
+          `<td><strong>${taux}%</strong></td>`+
+          `<td>${toMoney(d.montantTotal)}</td>`+
+          `<td style="color:#28a745">${toMoney(d.montantFacture)}</td>`+
+          `<td style="color:#e74c3c">${toMoney(d.montantNonFacturé)}</td>`+
+          '</tr>';
       }
-
       html += '</tbody>';
       table.innerHTML = html;
     }
-
-    // ===== COMPARAISON QUOTIDIENNE =====
-    function getDailyCountsFromReconciled(){
-      const map = new Map();
-      for(const a of reconciledData){
-        const d = a['Date_Formatee']; if(!d) continue;
-        map.set(d, (map.get(d)||0)+1);
-      }
-      return map;
-    }
-    function displayComparison(){
-      const table = document.getElementById('table-comparaison');
-      const importMap = getDailyCountsFromReconciled();
-      const allDates = new Set([
-        ...manualEntries.map(e=>e.date),
-        ...Array.from(importMap.keys())
-      ]);
-      if(!allDates.size){
-        table.innerHTML = '<p style="padding:20px;text-align:center;color:#666;">Pas encore de données à comparer</p>';
-        return;
-      }
-      const sorted = [...allDates].sort((a,b)=>{
-        const [da,ma,ya]=a.split('/').map(Number);
-        const [db,mb,yb]=b.split('/').map(Number);
-        return ya!==yb? ya-yb : ma!==mb? ma-mb : da-db;
-      });
-
-      let html = '<thead><tr><th>Date</th><th>Manuel</th><th>Importé (actes)</th><th>Δ (Manuel - Importé)</th></tr></thead><tbody>';
-      let sumM=0, sumI=0;
-      for(const d of sorted){
-        const m = manualEntries.find(e=>e.date===d)?.count || 0;
-        const i = importMap.get(d) || 0;
-        const delta = m - i;
-        const color = delta===0? '#333' : (delta>0? '#28a745' : '#e74c3c');
-        html += `<tr><td>${d}</td><td>${m}</td><td>${i}</td><td style="color:${color};font-weight:600">${delta}</td></tr>`;
-        sumM += m; sumI += i;
-      }
-      const dTot = sumM - sumI;
-      const cTot = dTot===0? '#333' : (dTot>0? '#28a745' : '#e74c3c');
-      html += `<tr style="background:#f8f9fa;font-weight:bold"><td>Total</td><td>${sumM}</td><td>${sumI}</td><td style="color:${cTot}">${dTot}</td></tr>`;
-      html += '</tbody>';
-      table.innerHTML = html;
-    }
-    document.getElementById('exportComparaisonBtn').addEventListener('click', ()=>{
-      const importMap=getDailyCountsFromReconciled();
-      const allDates=new Set([...manualEntries.map(e=>e.date), ...Array.from(importMap.keys())]);
-      const sorted=[...allDates].sort((a,b)=>{
-        const [da,ma,ya]=a.split('/').map(Number);
-        const [db,mb,yb]=b.split('/').map(Number);
-        return ya!==yb? ya-yb : ma!==mb? ma-mb : da-db;
-      });
-      const rows=['date;manuel;importe;delta'];
-      let sumM=0,sumI=0;
-      for(const d of sorted){
-        const m=manualEntries.find(e=>e.date===d)?.count||0;
-        const i=importMap.get(d)||0;
-        sumM+=m; sumI+=i;
-        rows.push(`${d};${m};${i};${m-i}`);
-      }
-      rows.push(`TOTAL;${sumM};${sumI};${sumM-sumI}`);
-      const blob=new Blob([rows.join('\n')], {type:'text/csv;charset=utf-8;'});
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement('a'); a.href=url; a.download='comparaison_quotidienne.csv'; a.click(); URL.revokeObjectURL(url);
-    });
 
     // ===== EXPORTS =====
     function exportMonthlyReport(){
-      const monthly = {};
-      reconciledData.forEach(a=>{
-        const d=a['Date_Formatee']; if(!d) return;
-        const [jj,mm,yy]=d.split('/'); if(!(jj&&mm&&yy)) return;
-        const key=`${mm}/${yy}`; const name=getMonthName(+mm,+yy);
-        if(!monthly[key]) monthly[key]={name,total:0,factures:0,nonFactures:0,montantTotal:0,montantFacture:0,montantNonFacture:0};
-        const m=a.Montant_num||0;
-        monthly[key].total++; monthly[key].montantTotal+=m;
-        if(a['Facturé']==='Oui'){ monthly[key].factures++; monthly[key].montantFacture+=m; }
-        else { monthly[key].nonFactures++; monthly[key].montantNonFacture+=m; }
-      });
-
-      const sorted=Object.keys(monthly).sort((a,b)=>{
-        const [ma,ya]=a.split('/').map(Number);
-        const [mb,yb]=b.split('/').map(Number);
-        return ya!==yb? ya-yb : ma-mb;
-      });
-
-      const exportData = sorted.map(k=>{
-        const d=monthly[k];
-        const taux=d.total? (d.factures/d.total*100).toFixed(1)+'%' : '0%';
+      const monthlyData = {};
+      for (const acte of reconciledData){
+        const date = acte["Date_Formatee"]; if (!date) continue;
+        const [jj,mm,yyyy] = date.split('/');
+        if (!(jj&&mm&&yyyy)) continue;
+        const key = `${mm}/${yyyy}`;
+        const name = getMonthName(Number(mm), Number(yyyy));
+        if (!monthlyData[key]) monthlyData[key] = { name,total:0,factures:0,nonFactures:0,montantTotal:0,montantFacture:0,montantNonFacture:0 };
+        const m = acte.Montant_num || 0;
+        monthlyData[key].total++;
+        monthlyData[key].montantTotal += m;
+        if (acte["Facturé"] === "Oui"){ monthlyData[key].factures++; monthlyData[key].montantFacture += m; }
+        else { monthlyData[key].nonFactures++; monthlyData[key].montantNonFacture += m; }
+      }
+      const sorted = Object.keys(monthlyData).sort((a,b)=>{ const [ma,ya]=a.split('/').map(Number); const [mb,yb]=b.split('/').map(Number); return ya!==yb?ya-yb:ma-mb; });
+      const exportData = sorted.map((k)=>{
+        const d = monthlyData[k];
+        const taux = d.total ? (d.factures / d.total * 100).toFixed(1) + '%' : '0%';
         return {
           'Mois': d.name,
           'Total Actes': d.total,
@@ -769,37 +749,47 @@
           'Montant Non Facturé (€)': (d.montantNonFacture||0).toFixed(2)
         };
       });
-
       const ws = XLSX.utils.json_to_sheet(exportData);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Récapitulatif Mensuel');
-
-      const t=new Date();
-      const filename=`Recapitulatif_Mensuel_${t.getFullYear()}_${String(t.getMonth()+1).padStart(2,'0')}.xlsx`;
+      const today = new Date();
+      const filename = `Recapitulatif_Mensuel_${today.getFullYear()}_${String(today.getMonth()+1).padStart(2,'0')}.xlsx`;
       XLSX.writeFile(wb, filename);
     }
-
     function exportToExcel(type){
       let data, filename;
-      if(type==='non-factures'){ data=reconciledData.filter(a=>a['Facturé']==='Non'); filename='actes_non_factures.xlsx'; }
-      else if(type==='factures'){ data=reconciledData.filter(a=>a['Facturé']==='Oui'); filename='actes_factures.xlsx'; }
-      else { data=reconciledData; filename='tous_les_actes.xlsx'; }
-
-      const rows = data.map(row => ({
-        'Date': row['Date_Formatee'],
-        'Nom Patient': row['Nom_Complet'],
-        'Numéro de Dossier': row['_DOSSIER_NORM'],
-        'Prestation': row['Prestation'],
-        'Montant (€)': (row['Montant_num']||0).toFixed(2),
-        'Statut': row['Facturé'],
-        'Détails Facture': row['Détails_Facture']
+      switch(type){
+        case 'non-factures': data = reconciledData.filter((a)=>a['Facturé']==='Non'); filename='actes_non_factures.xlsx'; break;
+        case 'factures': data = reconciledData.filter((a)=>a['Facturé']==='Oui'); filename='actes_factures.xlsx'; break;
+        default: data = reconciledData; filename='tous_les_actes.xlsx';
+      }
+      const rows = data.map((r)=>({
+        'Date': r['Date_Formatee'],
+        'Nom Patient': r['Nom_Complet'],
+        'Numéro de Dossier': r['_DOSSIER_NORM'],
+        'Prestation': r['Prestation'],
+        'Montant (€)': (r['Montant_num']||0).toFixed(2),
+        'Statut': r['Facturé'],
+        'Détails Facture': r['Détails_Facture']
       }));
-
       const ws = XLSX.utils.json_to_sheet(rows);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Actes');
       XLSX.writeFile(wb, filename);
     }
+
+    // ===== INIT =====
+    document.getElementById('manualDate').value = todayInputValue();
+    document.getElementById('manualAddBtn').addEventListener('click', addOrUpdateManual);
+    document.getElementById('manualExportBtn').addEventListener('click', exportManualJSON);
+    document.getElementById('manualImportBtn').addEventListener('click', ()=>document.getElementById('manualImportInput').click());
+    document.getElementById('manualImportInput').addEventListener('change', (e)=>{ const f=e.target.files?.[0]; if(f) importManualJSON(f); e.target.value=''; });
+
+    document.getElementById('btnPull').addEventListener('click', pullGist);
+    document.getElementById('btnPush').addEventListener('click', pushGist);
+    document.getElementById('btnForget').addEventListener('click', forgetAuth);
+
+    loadManualLocal(); loadAuth(); refreshManualUI();
   </script>
 </body>
 </html>
