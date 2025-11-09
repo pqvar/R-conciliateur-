@@ -5,50 +5,64 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Réconciliation des Actes Médicaux</title>
 
-  <!-- Libs côté client -->
+  <!-- Libs client -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" defer></script>
 
-  <!-- Firebase modules via CDN (optionnels). Restent passifs si non configurés. -->
+  <!-- Firebase modules via CDN -->
   <script type="module">
-    // On charge les modules sans forcer l'usage si le config est vide
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-    import { getFirestore, doc, setDoc, collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-    import { getStorage, ref as stRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-storage.js";
+    import { 
+      getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged 
+    } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+    import { 
+      getFirestore, doc, setDoc, collection, query, orderBy, onSnapshot 
+    } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+    import { 
+      getStorage, ref as stRef, uploadBytes, getDownloadURL 
+    } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-storage.js";
 
-    // ==== REMPLACE ICI POUR ACTIVER FIREBASE (sinon laisse vide) ====
+    // === REMPLACE LES VALEURS CI-DESSOUS ===
     const firebaseConfig = {
-      apiKey:          "YOUR_API_KEY",
-      authDomain:      "YOUR_PROJECT.firebaseapp.com",
-      projectId:       "YOUR_PROJECT_ID",
-      storageBucket:   "YOUR_PROJECT.appspot.com",
-      appId:           "YOUR_APP_ID",
-      // measurementId: "G-XXXXXXXX" // optionnel, pas nécessaire ici
+      apiKey:        "YOUR_API_KEY",
+      authDomain:    "YOUR_PROJECT.firebaseapp.com",
+      projectId:     "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT.appspot.com",   // <= .appspot.com
+      appId:         "YOUR_APP_ID"
+      // measurementId: "G-XXXX" // optionnel
     };
-    // ================================================================
 
-    // Contexte global (utilisé par le script principal plus bas)
+    // Contexte global utilisable par le script non-module
     window.__fb = { enabled:false };
 
     try {
-      // On n'initialise que si apiKey n'est pas un placeholder
-      if (firebaseConfig && firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("YOUR_API_KEY")) {
+      const ok = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("YOUR_API_KEY");
+      if (ok) {
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db   = getFirestore(app);
         const st   = getStorage(app);
-        window.__fb = { enabled:true, app, auth, db, st, GoogleAuthProvider };
+
+        // On expose TOUT ce dont le script principal a besoin
+        window.__fb = {
+          enabled: true,
+          app, auth, db, st,
+          GoogleAuthProvider,
+          signInWithPopup, signOut, onAuthStateChanged,
+          doc, setDoc, collection, query, orderBy, onSnapshot,
+          stRef, uploadBytes, getDownloadURL
+        };
       }
-    } catch(e) {
+    } catch (e) {
       console.warn("Firebase non initialisé:", e);
       window.__fb = { enabled:false };
     }
   </script>
 
   <style>
-    :root{--violet:#6b5cff;--violet2:#5b4bd8;--bg:#f3f4f8}
-    *{box-sizing:border-box} body{margin:0;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto}
+    :root{--violet:#6b5cff;--violet2:#5b4bd8}
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto}
     .shell{max-width:1180px;margin:24px auto;background:#fff;border-radius:18px;box-shadow:0 18px 60px rgba(0,0,0,.25);overflow:hidden}
     .header{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:22px 28px;display:flex;align-items:center;justify-content:space-between}
     .header h1{margin:0;font-size:22px;font-weight:700}
@@ -56,7 +70,9 @@
     .card{background:#fff;border:1px solid #e7e7ef;border-radius:12px;padding:16px;margin:14px 0}
     .section-title{display:flex;gap:8px;align-items:center;font-weight:700;margin:6px 0 12px 0}
     .btn{appearance:none;border:0;border-radius:10px;background:var(--violet);color:#fff;padding:10px 14px;font-weight:700;cursor:pointer}
-    .btn.secondary{background:#6c757d} .btn.ghost{background:#f0f1ff;color:#3d33b7} .btn.small{padding:8px 10px}
+    .btn.secondary{background:#6c757d}
+    .btn.ghost{background:#f0f1ff;color:#3d33b7}
+    .btn.small{padding:8px 10px}
     .btn:disabled{opacity:.5;cursor:not-allowed}
     .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
     .file-btn{display:inline-block;border:2px dashed var(--violet);border-radius:10px;padding:10px 14px;color:var(--violet);font-weight:700;background:#fff;cursor:pointer}
@@ -71,7 +87,8 @@
     .stat{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border-radius:12px;padding:12px;text-align:center}
     .stat .v{font-size:26px;font-weight:800}
     .note{color:#666;font-size:12px}
-    .tabbar .btn{background:#eef0ff;color:#3c31b7} .tabbar .btn.active{background:var(--violet2);color:#fff}
+    .tabbar .btn{background:#eef0ff;color:#3c31b7}
+    .tabbar .btn.active{background:var(--violet2);color:#fff}
     .hidden{display:none}
     .right{margin-left:auto}
     .tag{display:inline-block;background:#eef1ff;color:#3b36a8;border-radius:8px;padding:4px 8px;font-size:12px;font-weight:700}
@@ -89,8 +106,6 @@
     </div>
 
     <div class="content">
-
-      <!-- Upload -->
       <div class="card">
         <div class="section-title">📁 Chargement des fichiers</div>
         <div class="note">Ajoutez un ou plusieurs fichiers, puis lancez l’analyse.</div>
@@ -103,14 +118,13 @@
 
           <button class="btn right" id="btnAnalyze" disabled>🔍 Analyser & réconcilier</button>
           <button class="btn secondary" id="btnReset">🔄 Réinitialiser</button>
-          <button class="btn secondary" id="btnUploadCloud" disabled title="Disponible connecté">☁️ Uploader vers Storage</button>
+          <button class="btn secondary" id="btnUploadCloud" disabled title="Disponible après connexion">☁️ Uploader vers Storage</button>
         </div>
 
         <div class="file-list" id="listActes"></div>
         <div class="file-list" id="listHonos"></div>
       </div>
 
-      <!-- Saisie manuelle -->
       <div class="card">
         <div class="section-title">✍️ Saisie manuelle quotidienne (comparatif)</div>
         <div class="grid">
@@ -122,7 +136,6 @@
         <table id="mTable"></table>
       </div>
 
-      <!-- Résultats -->
       <div class="card">
         <div class="section-title">📈 Résultats</div>
         <div class="grid" id="statsBox"></div>
@@ -145,26 +158,24 @@
         <div id="tab-tous" class="hidden"></div>
       </div>
 
-      <!-- Historique Firestore (si connecté) -->
       <div class="card" id="histCard" style="display:none">
         <div class="section-title">📜 Historique des analyses (Firestore)</div>
         <div id="histList" class="grid"></div>
       </div>
-
     </div>
   </div>
 
   <script>
-  // ====== ÉTAT ======
+  // ---------- ÉTAT ----------
   let actesFiles=[], honosFiles=[];
   let actesData=[], honosData=[], reconciledData=[];
   let manualEntries = JSON.parse(localStorage.getItem('manualEntries_v1')||'[]');
 
-  // ====== UTIL ======
+  // ---------- UTIL ----------
   const $ = sel => document.querySelector(sel);
-  function fmtMoney(n){ return (Number(n)||0).toFixed(2)+"€"; }
-  function normalizeString(s=""){ return s.toString().normalize("NFD").replace(/\p{Diacritic}/gu,"").replace(/[^A-Za-z0-9\s'-]/g," ").replace(/\s+/g," ").trim().toUpperCase(); }
-  function normalizeDossier(d=""){ return d.toString().replace(/\D/g,"").replace(/^0+/,''); }
+  const fmtMoney = n => (Number(n)||0).toFixed(2)+"€";
+  const normalizeString = (s="") => s.toString().normalize("NFD").replace(/\p{Diacritic}/gu,"").replace(/[^A-Za-z0-9\s'-]/g," ").replace(/\s+/g," ").trim().toUpperCase();
+  const normalizeDossier = (d="") => d.toString().replace(/\D/g,"").replace(/^0+/,'');
   function parseFrNumber(val){ if(val==null) return 0; if(typeof val==="number") return val; const s=String(val).replace(/\s/g,"").replace(/\./g,"").replace(/,/g,"."); const n=parseFloat(s); return isNaN(n)?0:n; }
   function excelDateToJSDate(serial){
     if(serial instanceof Date) return new Date(serial.getFullYear(), serial.getMonth(), serial.getDate());
@@ -177,29 +188,22 @@
     const utcDays=Math.floor(serial-25569), utcValue=utcDays*86400; const dt=new Date(utcValue*1000);
     return new Date(dt.getFullYear(),dt.getMonth(),dt.getDate());
   }
-  function fmtDate(d){ if(!d) return ""; const t=new Date(d); if(isNaN(t)) return ""; return `${String(t.getDate()).padStart(2,'0')}/${String(t.getMonth()+1).padStart(2,'0')}/${t.getFullYear()}`; }
-  function ensureTabs(name){
-    ["recap","compar","non","oui","tous"].forEach(k=>{
-      $('#tab-'+k).classList.toggle('hidden', k!==name);
-      $('#tabBtn-'+k).classList.toggle('active', k===name);
-    });
-  }
+  const fmtDate = d => { if(!d) return ""; const t=new Date(d); if(isNaN(t)) return ""; return `${String(t.getDate()).padStart(2,'0')}/${String(t.getMonth()+1).padStart(2,'0')}/${t.getFullYear()}`; };
+  function ensureTabs(name){ ["recap","compar","non","oui","tous"].forEach(k=>{ $('#tab-'+k).classList.toggle('hidden', k!==name); $('#tabBtn-'+k).classList.toggle('active', k===name); }); }
 
-  // ====== UI : Uploads ======
+  // ---------- Uploads ----------
   $('#btnActes').onclick = ()=> $('#actesInput').click();
   $('#btnHonos').onclick = ()=> $('#honosInput').click();
-  $('#actesInput').onchange = (e)=>{
+
+  $('#actesInput').onchange = e=>{
     for(const f of Array.from(e.target.files)){ if(!actesFiles.find(x=>x.name===f.name&&x.size===f.size)) actesFiles.push(f); }
-    renderFileList('actes');
-    checkReady();
-    e.target.value="";
+    renderFileList('actes'); checkReady(); e.target.value="";
   };
-  $('#honosInput').onchange = (e)=>{
+  $('#honosInput').onchange = e=>{
     for(const f of Array.from(e.target.files)){ if(!honosFiles.find(x=>x.name===f.name&&x.size===f.size)) honosFiles.push(f); }
-    renderFileList('honos');
-    checkReady();
-    e.target.value="";
+    renderFileList('honos'); checkReady(); e.target.value="";
   };
+
   function renderFileList(kind){
     const list = kind==='actes' ? $('#listActes') : $('#listHonos');
     const arr  = kind==='actes' ? actesFiles : honosFiles;
@@ -210,11 +214,8 @@
       </div>
     `).join('');
   }
-  window.removeFile = (kind, idx)=>{
-    if(kind==='actes') actesFiles.splice(idx,1); else honosFiles.splice(idx,1);
-    renderFileList(kind); checkReady();
-  };
-  function checkReady(){ $('#btnAnalyze').disabled = !(actesFiles.length && honosFiles.length); }
+  window.removeFile = (kind, idx)=>{ if(kind==='actes') actesFiles.splice(idx,1); else honosFiles.splice(idx,1); renderFileList(kind); checkReady(); };
+  const checkReady = ()=> $('#btnAnalyze').disabled = !(actesFiles.length && honosFiles.length);
 
   $('#btnReset').onclick = ()=>{
     actesFiles=[]; honosFiles=[]; actesData=[]; honosData=[]; reconciledData=[];
@@ -222,7 +223,7 @@
     $('#statsBox').innerHTML=''; ['recap','compar','non','oui','tous'].forEach(k=>$('#tab-'+k).innerHTML='');
   };
 
-  // ====== Saisie manuelle ======
+  // ---------- Saisie manuelle ----------
   function renderManualTable(){
     const t=$('#mTable');
     if(!manualEntries.length){ t.innerHTML='<thead><tr><th>Date</th><th>Nombre</th><th></th></tr></thead><tbody><tr><td colspan="3" class="note">Aucune saisie</td></tr></tbody>'; return; }
@@ -254,7 +255,7 @@
   };
   renderManualTable();
 
-  // ====== Analyse ======
+  // ---------- Analyse ----------
   $('#btnAnalyze').onclick = analyze;
 
   async function analyze(){
@@ -263,10 +264,7 @@
       honosData=[]; for(const f of honosFiles){ const d=await readCSV(f);   honosData=honosData.concat(d); }
       reconcile();
       displayAll();
-      // Sauvegardes cloud si connecté
-      if(window.__fb.enabled && window.__fb.auth?.currentUser){
-        await saveMonthlyRecapToFirestore();
-      }
+      if(window.__fb.enabled && window.__fb.auth?.currentUser){ await saveMonthlyRecapToFirestore(); }
     }catch(e){ console.error(e); alert("Erreur d'analyse : "+e.message); }
   }
 
@@ -339,13 +337,22 @@
       const montant=parseFrNumber(a["Prix_Unitaire_Coefficient_Quantité"]||a["Montant"]||a["Tarif"]);
       const key=`${dossier}|${patientNorm}|${dateFmt}`;
       const m=honIndex.get(key);
-      return {...a,_DOSSIER_NORM:dossier,Nom_Complet:(nom+" "+prenom).trim(),Patient_norm:patientNorm,Date_Formatee:dateFmt,Prestation:prestation,Montant_num:Number(montant)||0,Facturé: m?"Oui":"Non",Détails_Facture: m?(m["Libellé"]||""): ""};
+      return {
+        ...a,
+        _DOSSIER_NORM:dossier,
+        Nom_Complet:(nom+" "+prenom).trim(),
+        Patient_norm:patientNorm,
+        Date_Formatee:dateFmt,
+        Prestation:prestation,
+        Montant_num:Number(montant)||0,
+        Facturé: m?"Oui":"Non",
+        Détails_Facture: m?(m["Libellé"]||""): ""
+      };
     });
   }
 
-  // ====== Affichages ======
+  // ---------- Affichages ----------
   function displayAll(){
-    // Stats
     const total=reconciledData.length;
     const fact=reconciledData.filter(x=>x.Facturé==="Oui").length;
     const nonf=total-fact;
@@ -356,14 +363,11 @@
       <div class="stat"><div class="v">${nonf}</div><div>Actes non facturés</div></div>
       <div class="stat"><div class="v">${fmtMoney(mNon)}</div><div>Montant non facturé</div></div>
     `;
-
-    // Onglets
     displayMonthly();
     displayCompar();
     displayList('non', reconciledData.filter(x=>x.Facturé==='Non'));
     displayList('oui', reconciledData.filter(x=>x.Facturé==='Oui'));
     displayList('tous', reconciledData);
-
     ensureTabs('recap');
   }
 
@@ -413,14 +417,9 @@
     h+='</tbody></table>'; $('#tab-compar').innerHTML=h;
   }
 
-  // Onglets click
-  ["recap","compar","non","oui","tous"].forEach(t=>{
-    $('#tabBtn-'+t).onclick = ()=> ensureTabs(t);
-  });
+  ["recap","compar","non","oui","tous"].forEach(t=> $('#tabBtn-'+t).onclick = ()=> ensureTabs(t));
 
-  // Exports
   $('#btnExportRecap').onclick = ()=>{
-    // Re-crée la table mensuelle pour export JSON
     const monthly={};
     for(const a of reconciledData){
       const d=a.Date_Formatee; if(!d) continue; const [jj,mm,yy]=d.split('/');
@@ -431,6 +430,7 @@
     const out = keys.map(k=>{const d=monthly[k]; const taux=d.total?(d.f/d.total*100).toFixed(1)+'%':'0%'; return {"Mois":d.name,"Total Actes":d.total,"Actes Facturés":d.f,"Actes Non Facturés":d.nf,"Taux":taux,"Montant Total (€)":d.mt.toFixed(2),"Montant Facturé (€)":d.mf.toFixed(2),"Montant Non Facturé (€)":d.mnf.toFixed(2)};});
     const ws=XLSX.utils.json_to_sheet(out), wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Récap'); XLSX.writeFile(wb,'recap_mensuel.xlsx');
   };
+
   $('#btnExportCompar').onclick = ()=>{
     const imp={}, man={};
     for(const a of reconciledData){ const d=a.Date_Formatee; if(!d) continue; imp[d]=(imp[d]||0)+1; }
@@ -440,45 +440,39 @@
     const ws=XLSX.utils.json_to_sheet(out), wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Comparaison'); XLSX.writeFile(wb,'comparaison_quotidienne.xlsx');
   };
 
-  // ====== Firebase : Auth + Upload Storage + Firestore (optionnels) ======
+  // ---------- Firebase : Auth + Upload + Historique ----------
   (function initFirebaseUI(){
     const fb = window.__fb;
     if(!fb.enabled){ $('#hostTag').textContent='Hébergé : GitHub Pages (mode local)'; return; }
     $('#hostTag').textContent='Hébergé : GitHub Pages / Firebase';
-    const auth = fb.auth, provider = new fb.GoogleAuthProvider();
 
-    $('#btnLogin').onclick = async()=>{
-      try{ await signInWithPopup(auth, provider); }catch(e){ alert("Connexion impossible : "+e.message); }
-    };
-    $('#btnLogout').onclick = async()=>{
-      try{ await signOut(auth); }catch(e){ alert("Déconnexion impossible : "+e.message); }
-    };
+    const auth = fb.auth;
+    const provider = new fb.GoogleAuthProvider();
 
-    onAuthStateChanged(auth, user=>{
+    $('#btnLogin').onclick = async()=>{ try{ await fb.signInWithPopup(auth, provider); }catch(e){ alert("Connexion impossible : "+e.message); } };
+    $('#btnLogout').onclick = async()=>{ try{ await fb.signOut(auth); }catch(e){ alert("Déconnexion impossible : "+e.message); } };
+
+    fb.onAuthStateChanged(auth, user=>{
       if(user){
         $('#btnLogin').classList.add('hidden'); $('#btnLogout').classList.remove('hidden');
-        $('#btnUploadCloud').disabled=false;
-        $('#histCard').style.display='block';
+        $('#btnUploadCloud').disabled=false; $('#histCard').style.display='block';
         bindHistorique(user.uid);
       }else{
         $('#btnLogin').classList.remove('hidden'); $('#btnLogout').classList.add('hidden');
-        $('#btnUploadCloud').disabled=true;
-        $('#histCard').style.display='none';
-        $('#histList').innerHTML='';
+        $('#btnUploadCloud').disabled=true; $('#histCard').style.display='none'; $('#histList').innerHTML='';
       }
     });
 
-    // Upload Storage
     $('#btnUploadCloud').onclick = async()=>{
       const user = auth.currentUser; if(!user) return alert("Connecte-toi d’abord");
       if(!actesFiles.length && !honosFiles.length) return alert("Aucun fichier sélectionné");
-      const st = fb.st, uploads=[...actesFiles.map(f=>({f,folder:'actes'})), ...honosFiles.map(f=>({f,folder:'honoraires'}))];
+      const uploads=[...actesFiles.map(f=>({f,folder:'actes'})), ...honosFiles.map(f=>({f,folder:'honoraires'}))];
       try{
         for(const u of uploads){
           const path = `users/${user.uid}/${u.folder}/${Date.now()}_${u.f.name}`;
-          const ref = stRef(st, path);
-          await uploadBytes(ref, u.f);
-          await getDownloadURL(ref); // URL si besoin
+          const ref = fb.stRef(fb.st, path);
+          await fb.uploadBytes(ref, u.f);
+          await fb.getDownloadURL(ref); // si besoin
         }
         alert("Upload terminé ✅");
       }catch(e){ alert("Upload échoué : "+e.message); }
@@ -497,14 +491,14 @@
       if(a.Facturé==='Oui'){ monthly[key].factures++; monthly[key].montantFacture+=m; } else { monthly[key].nonFactures++; monthly[key].montantNonFacture+=m; }
     }
     for(const [k,v] of Object.entries(monthly)){
-      await setDoc(doc(window.__fb.db, "users", user.uid, "reconciliations", k), {...v, updatedAt: Date.now()});
+      await window.__fb.setDoc(window.__fb.doc(window.__fb.db, "users", user.uid, "reconciliations", k), {...v, updatedAt: Date.now()});
     }
   }
 
   function bindHistorique(uid){
     const fb = window.__fb; if(!fb.enabled) return;
-    const q = query(collection(fb.db, "users", uid, "reconciliations"), orderBy("month","desc"));
-    onSnapshot(q, snap=>{
+    const q = fb.query(fb.collection(fb.db, "users", uid, "reconciliations"), fb.orderBy("month","desc"));
+    fb.onSnapshot(q, snap=>{
       const arr = snap.docs.map(d=>d.data());
       if(!arr.length){ $('#histList').innerHTML='<div class="note">Aucune analyse sauvegardée</div>'; return; }
       $('#histList').innerHTML = arr.map(r=>{
