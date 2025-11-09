@@ -132,7 +132,7 @@
   </div>
 
   <script>
-    // ====== CONFIG FIREBASE (celle que tu as fournie) ======
+    // ====== CONFIG FIREBASE ======
     const firebaseConfig = {
       apiKey: "AIzaSyDcP7Cuvbkvmcr_mq7E_nHuxjSmDWK08-4",
       authDomain: "reconciliateur-50684.firebaseapp.com",
@@ -195,14 +195,8 @@
         $('#btnUploadCloud').disabled = false;
         $('#cloudSection').classList.remove('hidden');
         $('#histCard').style.display='block';
-
-        // Charger saisie manuelle (merge locale + Firestore)
         await syncManualFromFirestore();
-
-        // Lister fichiers Storage
         await listCloudFiles();
-
-        // Historique Firestore (reconciliations)
         bindHistorique(user.uid);
       } else {
         $('#btnLogin').classList.remove('hidden');
@@ -513,49 +507,53 @@
       });
     }
 
-    // ====== 🔧 FONCTION CORRIGÉE : RÉIMPORTER DEPUIS CLOUD ======
+    // ====== 🔧 FONCTION CORRIGÉE : RÉIMPORTER AVEC XMLHttpRequest ======
     window.reloadFromCloud = async (kind, encPath) => {
       const fullPath = decodeURIComponent(encPath);
       
       try {
+        console.log('📥 Chargement de:', fullPath);
+        
         const ref = st.ref(fullPath);
-        let blob;
+        const url = await ref.getDownloadURL();
         
-        // Essai 1 : Utiliser getBlob() directement (méthode Firebase)
-        try {
-          blob = await ref.getBlob();
-          console.log('✅ getBlob() réussi');
-        } catch (e1) {
-          console.warn('⚠️ getBlob() échoué, essai avec fetch...', e1);
-          
-          // Essai 2 : Fallback avec fetch + URL signée
-          const url = await ref.getDownloadURL();
-          const response = await fetch(url, { 
-            mode: 'cors',
-            cache: 'no-store' 
-          });
-          
-          if (!response.ok) throw new Error(`HTTP ${response.status}`);
-          blob = await response.blob();
-          console.log('✅ fetch() réussi');
-        }
+        console.log('🔗 URL obtenue');
         
-        // Vérifier le blob
+        // Télécharger avec XMLHttpRequest (contourne CORS)
+        const blob = await new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.responseType = 'blob';
+          
+          xhr.onload = () => {
+            if (xhr.status === 200) {
+              resolve(xhr.response);
+            } else {
+              reject(new Error(`Erreur ${xhr.status}`));
+            }
+          };
+          
+          xhr.onerror = () => reject(new Error('Erreur réseau'));
+          xhr.open('GET', url);
+          xhr.send();
+        });
+        
+        console.log('✅ Téléchargé:', (blob.size/1024).toFixed(1), 'KB');
+        
         if (!blob || blob.size === 0) {
-          throw new Error('Fichier vide ou invalide');
+          throw new Error('Fichier vide');
         }
         
-        // Créer le File object
-        const filename = fullPath.split('/').pop() || 'fichier_cloud';
+        // Créer le File
+        const filename = fullPath.split('/').pop() || 'fichier';
         const mimeType = kind === 'actes' 
           ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
           : 'text/csv';
         
         const file = new File([blob], filename, { type: mimeType });
         
-        console.log(`📁 Fichier créé: ${filename} (${(file.size/1024).toFixed(1)} KB)`);
+        console.log('📁 Fichier créé:', filename);
         
-        // Ajouter à la liste appropriée (éviter les doublons)
+        // Ajouter à la liste
         if (kind === 'actes') {
           if (!actesFiles.find(f => f.name === file.name && f.size === file.size)) {
             actesFiles.push(file);
@@ -570,11 +568,11 @@
         
         checkReady();
         
-        alert(`✅ Fichier "${filename}" chargé depuis le cloud (${(file.size/1024).toFixed(1)} KB)\n\n👉 Cliquez maintenant sur "Analyser & réconcilier" pour lancer l'analyse.`);
+        alert(`✅ Fichier "${filename}" chargé !\n\n👉 Cliquez sur "Analyser & réconcilier"`);
         
       } catch (e) { 
-        console.error('❌ Erreur complète réimport:', e);
-        alert(`❌ Impossible de réimporter le fichier\n\nErreur : ${e.message}\n\nVérifiez la console (F12) pour plus de détails.`); 
+        console.error('❌ Erreur:', e);
+        alert(`❌ Erreur: ${e.message}`); 
       }
     };
 
@@ -583,7 +581,6 @@
       if(!confirm('Supprimer ce fichier du cloud ?')) return;
       try{
         await st.ref(fullPath).delete();
-        // Supprimer la trace dans uploads (optionnel)
         if(currentUser){
           const q=await db.collection('users').doc(currentUser.uid).collection('uploads').where('path','==',fullPath).get();
           const batch = db.batch();
