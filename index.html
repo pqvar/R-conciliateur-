@@ -63,7 +63,7 @@
       <!-- Upload -->
       <div class="card">
         <div class="section-title">📁 Chargement des fichiers</div>
-        <div class="note">Ajoutez un ou plusieurs fichiers, puis lancez l’analyse.</div>
+        <div class="note">Ajoutez un ou plusieurs fichiers, puis lancez l'analyse.</div>
         <div class="row" style="margin:10px 0">
           <input type="file" id="actesInput" accept=".xlsx,.xls" multiple class="hidden">
           <button class="file-btn" id="btnActes">📊 Ajouter fichier Excel (actes)</button>
@@ -81,7 +81,7 @@
 
         <div id="cloudSection" class="hidden">
           <div class="section-title" style="margin-top:14px">☁️ Fichiers stockés (Storage)</div>
-          <div class="small-note">Réimporter pour relancer l’analyse à partir du cloud, ou supprimer.</div>
+          <div class="small-note">Réimporter pour relancer l'analyse à partir du cloud, ou supprimer.</div>
           <div class="file-list" id="cloudListActes"></div>
           <div class="file-list" id="cloudListHonos"></div>
         </div>
@@ -137,7 +137,7 @@
       apiKey: "AIzaSyDcP7Cuvbkvmcr_mq7E_nHuxjSmDWK08-4",
       authDomain: "reconciliateur-50684.firebaseapp.com",
       projectId: "reconciliateur-50684",
-      storageBucket: "reconciliateur-50684.firebasestorage.app", // ⚠️ si Storage ne liste rien, remplace par "reconciliateur-50684.appspot.com"
+      storageBucket: "reconciliateur-50684.firebasestorage.app",
       messagingSenderId: "1029928449677",
       appId: "1:1029928449677:web:7445402f84a963d3ab54c4",
       measurementId: "G-STE125RQPZ"
@@ -512,19 +512,72 @@
           </div>`).join('');
       });
     }
-    window.reloadFromCloud = async (kind, encPath)=>{
+
+    // ====== 🔧 FONCTION CORRIGÉE : RÉIMPORTER DEPUIS CLOUD ======
+    window.reloadFromCloud = async (kind, encPath) => {
       const fullPath = decodeURIComponent(encPath);
-      try{
+      
+      try {
         const ref = st.ref(fullPath);
-        const url = await ref.getDownloadURL();
-        const blob = await (await fetch(url,{cache:'no-store'})).blob();
-        const file = new File([blob], fullPath.split('/').pop()||'cloudfile', { type: blob.type || (kind==='actes'?'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':'text/csv') });
-        if(kind==='actes') actesFiles=[file]; else honosFiles=[file];
-        renderLocalList(kind==='actes'?'actes':'honos');
+        let blob;
+        
+        // Essai 1 : Utiliser getBlob() directement (méthode Firebase)
+        try {
+          blob = await ref.getBlob();
+          console.log('✅ getBlob() réussi');
+        } catch (e1) {
+          console.warn('⚠️ getBlob() échoué, essai avec fetch...', e1);
+          
+          // Essai 2 : Fallback avec fetch + URL signée
+          const url = await ref.getDownloadURL();
+          const response = await fetch(url, { 
+            mode: 'cors',
+            cache: 'no-store' 
+          });
+          
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          blob = await response.blob();
+          console.log('✅ fetch() réussi');
+        }
+        
+        // Vérifier le blob
+        if (!blob || blob.size === 0) {
+          throw new Error('Fichier vide ou invalide');
+        }
+        
+        // Créer le File object
+        const filename = fullPath.split('/').pop() || 'fichier_cloud';
+        const mimeType = kind === 'actes' 
+          ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+          : 'text/csv';
+        
+        const file = new File([blob], filename, { type: mimeType });
+        
+        console.log(`📁 Fichier créé: ${filename} (${(file.size/1024).toFixed(1)} KB)`);
+        
+        // Ajouter à la liste appropriée (éviter les doublons)
+        if (kind === 'actes') {
+          if (!actesFiles.find(f => f.name === file.name && f.size === file.size)) {
+            actesFiles.push(file);
+          }
+          renderLocalList('actes');
+        } else {
+          if (!honosFiles.find(f => f.name === file.name && f.size === file.size)) {
+            honosFiles.push(file);
+          }
+          renderLocalList('honos');
+        }
+        
         checkReady();
-        alert('Fichier chargé depuis le cloud. Cliquez "Analyser & réconcilier".');
-      }catch(e){ alert('Impossible de réimporter : '+e.message); }
+        
+        alert(`✅ Fichier "${filename}" chargé depuis le cloud (${(file.size/1024).toFixed(1)} KB)\n\n👉 Cliquez maintenant sur "Analyser & réconcilier" pour lancer l'analyse.`);
+        
+      } catch (e) { 
+        console.error('❌ Erreur complète réimport:', e);
+        alert(`❌ Impossible de réimporter le fichier\n\nErreur : ${e.message}\n\nVérifiez la console (F12) pour plus de détails.`); 
+      }
     };
+
     window.deleteFromCloud = async (encPath)=>{
       const fullPath=decodeURIComponent(encPath);
       if(!confirm('Supprimer ce fichier du cloud ?')) return;
@@ -538,7 +591,8 @@
           await batch.commit();
         }
         await listCloudFiles();
-      }catch(e){ alert('Suppression impossible : '+e.message); }
+        alert('✅ Fichier supprimé du cloud');
+      }catch(e){ alert('❌ Suppression impossible : '+e.message); }
     };
 
   </script>
